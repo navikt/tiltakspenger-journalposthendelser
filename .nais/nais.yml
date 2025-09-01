@@ -13,6 +13,8 @@ spec:
     min: {{ replicas.min }}
     max: {{ replicas.max }}
   {{/with}}
+  ingresses:
+    - {{ ingress.url }}
   liveness:
     path: /isalive
   readiness:

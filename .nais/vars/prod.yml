@@ -3,3 +3,5 @@ replicas:
   max: 4
 kafka-pool: "nav-prod"
 naisEnv: prod
+ingress:
+  url: https://tiltakspenger-journalposthendelser.intern.nav.no
