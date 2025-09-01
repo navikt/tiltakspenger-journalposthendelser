@@ -1,0 +1,5 @@
+replicas:
+  min: 2
+  max: 4
+kafka-pool: "nav-prod"
+naisEnv: prod

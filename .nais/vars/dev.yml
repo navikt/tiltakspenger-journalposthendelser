@@ -1,0 +1,5 @@
+replicas:
+  min: 1
+  max: 2
+kafka-pool: "nav-dev"
+naisEnv: dev

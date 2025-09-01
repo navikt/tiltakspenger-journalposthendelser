@@ -1,0 +1,34 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: tiltakspenger-journalposthendelser
+  namespace: tpts
+  labels:
+    team: tpts
+spec:
+  image: {{ image }}
+  port: 8080
+  replicas:
+  {{#with replicas}}
+    min: {{ replicas.min }}
+    max: {{ replicas.max }}
+  {{/with}}
+  ingresses:
+    - {{ ingress.url }}
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
+  prometheus:
+    enabled: true
+    path: /metrics
+  kafka:
+    pool: {{ kafka-pool }}
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
