@@ -26,9 +26,9 @@ spec:
     pool: {{ kafka-pool }}
   env:
     - name: AAPEN_DOK_JOURNALFOERING_TOPIC
-      value: { { topic } }
+      value: {{ topic }}
     - name: PORT
-      value: {{spec.port}}
+      value: {{ spec.port }}
     - name: LOGBACK_CONFIG_FILE
       value: logback.xml
   observability:
