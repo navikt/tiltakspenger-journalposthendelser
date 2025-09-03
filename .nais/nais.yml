@@ -23,7 +23,7 @@ spec:
     enabled: true
     path: /metrics
   kafka:
-    pool: { { kafka-pool } }
+    pool: {{ kafka-pool }}
   env:
     - name: AAPEN_DOK_JOURNALFOERING_TOPIC
       value: { { topic } }
