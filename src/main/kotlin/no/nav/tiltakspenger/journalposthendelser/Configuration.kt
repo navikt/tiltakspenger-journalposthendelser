@@ -27,6 +27,10 @@ object Configuration {
             else -> Profile.LOCAL
         }
 
-    private fun getEnvVar(varName: String, localVar: String = "") = if (isNais()) System.getenv(varName)
-        ?: throw RuntimeException("Missing required variable \"$varName\"") else localVar
+    private fun getEnvVar(varName: String, localVar: String = "") = if (isNais()) {
+        System.getenv(varName)
+            ?: throw RuntimeException("Missing required variable \"$varName\"")
+    } else {
+        localVar
+    }
 }
