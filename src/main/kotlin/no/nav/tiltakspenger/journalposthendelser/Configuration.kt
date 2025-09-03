@@ -16,7 +16,7 @@ object Configuration {
     val kafkaKeystorePath = getEnvVar("KAFKA_KEYSTORE_PATH")
     val kafkaCredstorePassword = getEnvVar("KAFKA_CREDSTORE_PASSWORD")
     val applicationHttpPort = getEnvVar("PORT", 8084.toString()).toInt()
-    val logbackConfigFile = if (isNais()) "logback.xml" else "logback.local.xml"
+    val logbackConfigFile = getEnvVar("LOGBACK_CONFIG_FILE", "logback.local.xml")
 
     fun isNais() = applicationProfile() != Profile.LOCAL
 
