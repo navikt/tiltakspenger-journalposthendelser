@@ -28,9 +28,9 @@ spec:
     - name: AAPEN_DOK_JOURNALFOERING_TOPIC
       value: {{ topic }}
     - name: PORT
-      value: {{ spec.port }}
+      value: {{ "8080" }}
     - name: LOGBACK_CONFIG_FILE
-      value: logback.xml
+      value: "logback.xml"
   observability:
     autoInstrumentation:
       enabled: true
