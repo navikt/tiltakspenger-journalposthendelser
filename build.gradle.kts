@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
+val felleslibVersion = "0.0.569"
 val ktorVersion = "3.2.3"
 
 fun isNonStable(version: String): Boolean {
@@ -33,6 +34,10 @@ application {
 }
 
 dependencies {
+    //libs
+    implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
+
+
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation(kotlin("stdlib"))
