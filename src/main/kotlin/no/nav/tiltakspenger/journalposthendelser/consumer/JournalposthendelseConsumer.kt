@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.journalposthendelser.consumer
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.libs.kafka.Consumer
@@ -14,7 +15,7 @@ class JournalposthendelseConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "none") else LocalKafkaConfig(),
-) : Consumer<String, String> {
+) : Consumer<String, JournalfoeringHendelseRecord> {
     private val log = KotlinLogging.logger { }
 
     private val consumer = ManagedKafkaConsumer(
@@ -27,11 +28,12 @@ class JournalposthendelseConsumer(
         consume = ::consume,
     )
 
-    override suspend fun consume(key: String, value: String) {
-        /***
-         * TODO - vi må filtrere på typen 'JournalpostMottatt' på et eller annet tidspunkt
-         */
+    override suspend fun consume(key: String, value: JournalfoeringHendelseRecord) {
         log.info { "Mottatt journalposthendelse med key $key" }
+
+        if (value.hendelsesType == "JournalpostMottatt" && value.temaNytt == "IND") {
+            log.info { "Hendelse er av typen JournalpostMottatt ${value.journalpostId}" }
+        }
     }
 
     override fun run() = consumer.run()

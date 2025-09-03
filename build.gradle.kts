@@ -6,6 +6,8 @@ val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
 val felleslibVersion = "0.0.569"
 val ktorVersion = "3.2.3"
+val confluentVersion = "8.0.0"
+val avroVersion = "1.12.0"
 
 fun isNonStable(version: String): Boolean {
     val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
@@ -20,10 +22,13 @@ plugins {
     kotlin("plugin.serialization") version "2.2.10"
     id("com.diffplug.spotless") version "7.2.1"
     id("com.github.ben-manes.versions") version "0.52.0"
+    // https://github.com/androa/gradle-plugin-avro
+    id("io.github.androa.gradle.plugin.avro") version "0.0.12"
 }
 
 repositories {
     mavenCentral()
+    maven("https://packages.confluent.io/maven/")
     maven {
         url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
@@ -50,6 +55,10 @@ dependencies {
     // Http
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
+
+    // Avro
+    implementation("io.confluent:kafka-avro-serializer:${confluentVersion}")
+    implementation("org.apache.avro:avro:${avroVersion}")
 }
 
 spotless {
