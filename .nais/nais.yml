@@ -24,6 +24,11 @@ spec:
     path: /metrics
   kafka:
     pool: {{ kafka-pool }}
+  accessPolicy:
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
   env:
     - name: AAPEN_DOK_JOURNALFOERING_TOPIC
       value: {{ topic }}
