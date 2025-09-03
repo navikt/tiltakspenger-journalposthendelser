@@ -5,3 +5,4 @@ kafka-pool: "nav-dev"
 naisEnv: dev
 ingress:
   url: https://tiltakspenger-journalposthendelser.intern.dev.nav.no
+topic: teamdokumenthandtering.aapen-dok-journalfoering

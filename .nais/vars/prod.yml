@@ -5,3 +5,4 @@ kafka-pool: "nav-prod"
 naisEnv: prod
 ingress:
   url: https://tiltakspenger-journalposthendelser.intern.nav.no
+topic: teamdokumenthandtering.aapen-dok-journalfoering

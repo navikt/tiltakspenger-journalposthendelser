@@ -23,7 +23,14 @@ spec:
     enabled: true
     path: /metrics
   kafka:
-    pool: {{ kafka-pool }}
+    pool: { { kafka-pool } }
+  env:
+    - name: AAPEN_DOK_JOURNALFOERING_TOPIC
+      value: { { topic } }
+    - name: PORT
+      value: {{spec.port}}
+    - name: LOGBACK_CONFIG_FILE
+      value: logback.xml
   observability:
     autoInstrumentation:
       enabled: true

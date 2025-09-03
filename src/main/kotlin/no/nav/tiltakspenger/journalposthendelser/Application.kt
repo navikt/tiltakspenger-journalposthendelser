@@ -6,12 +6,11 @@ import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.AttributeKey
-import no.nav.tiltakspenger.journalposthendelser.Configuration.httpPort
 import no.nav.tiltakspenger.journalposthendelser.context.ApplicationContext
 import no.nav.tiltakspenger.journalposthendelser.routes.journalposthendelser
 
 fun main() {
-    System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile())
+    System.setProperty("logback.configurationFile", Configuration.logbackConfigFile)
 
     val log = KotlinLogging.logger {}
 
@@ -20,7 +19,7 @@ fun main() {
 
 fun start(
     log: KLogger,
-    port: Int = httpPort(),
+    port: Int = Configuration.applicationHttpPort,
     applicationContext: ApplicationContext = ApplicationContext(),
 ) {
     Thread.setDefaultUncaughtExceptionHandler { _, e ->
