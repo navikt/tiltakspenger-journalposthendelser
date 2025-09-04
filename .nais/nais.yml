@@ -35,7 +35,7 @@ spec:
     - name: LOGBACK_CONFIG_FILE
       value: "logback.xml"
     - name: AAPEN_DOK_JOURNALFOERING_TOPIC
-      value: { { topic } }
+      value: {{ topic }}
     - name: SAF_URL
       value: {{ saf.url }}
     - name: SAF_SCOPE
