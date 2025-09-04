@@ -21,10 +21,11 @@ class JournalposthendelseConsumer(
 
     private val consumer = ManagedKafkaConsumer(
         topic = topic,
-        config = kafkaConfig.consumerConfig(
+        config = kafkaConfig.avroConsumerConfig(
             keyDeserializer = StringDeserializer(),
             valueDeserializer = KafkaAvroDeserializer(),
             groupId = groupId,
+            useSpecificAvroReader = true,
         ),
         consume = ::consume,
     )
