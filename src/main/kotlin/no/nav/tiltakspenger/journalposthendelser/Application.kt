@@ -37,6 +37,10 @@ fun start(
     )
     server.application.attributes.put(isReadyKey, true)
 
+    if (Configuration.isNais()) {
+        applicationContext.journalposthendelseConsumer.run()
+    }
+
     Runtime.getRuntime().addShutdownHook(
         Thread {
             server.application.attributes.put(isReadyKey, false)

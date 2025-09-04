@@ -11,10 +11,6 @@ const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer"
 
 object Configuration {
     val topic = getEnvVar("AAPEN_DOK_JOURNALFOERING_TOPIC")
-    val kafkaBrokers = getEnvVar("KAFKA_BROKERS")
-    val kafkaTruststorePath = getEnvVar("KAFKA_TRUSTSTORE_PATH")
-    val kafkaKeystorePath = getEnvVar("KAFKA_KEYSTORE_PATH")
-    val kafkaCredstorePassword = getEnvVar("KAFKA_CREDSTORE_PASSWORD")
     val applicationHttpPort = getEnvVar("PORT", 8084.toString()).toInt()
     val logbackConfigFile = getEnvVar("LOGBACK_CONFIG_FILE", "logback.local.xml")
 

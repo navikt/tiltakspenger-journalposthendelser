@@ -29,8 +29,6 @@ class JournalposthendelseConsumer(
     )
 
     override suspend fun consume(key: String, value: JournalfoeringHendelseRecord) {
-        log.info { "Mottatt journalposthendelse med key $key" }
-
         if (value.hendelsesType == "JournalpostMottatt" && value.temaNytt == "IND") {
             log.info { "Hendelse er av typen JournalpostMottatt ${value.journalpostId}" }
         }
