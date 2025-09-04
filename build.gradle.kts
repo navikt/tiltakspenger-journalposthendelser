@@ -8,7 +8,7 @@ val felleslibVersion = "0.0.574"
 val ktorVersion = "3.2.3"
 val confluentVersion = "8.0.0"
 val avroVersion = "1.12.0"
-val caffeineVersion = "3.2.1"
+val caffeineVersion = "3.2.2"
 
 fun isNonStable(version: String): Boolean {
     val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
