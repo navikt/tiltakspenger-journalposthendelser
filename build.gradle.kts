@@ -8,6 +8,7 @@ val felleslibVersion = "0.0.569"
 val ktorVersion = "3.2.3"
 val confluentVersion = "8.0.0"
 val avroVersion = "1.12.0"
+val caffeineVersion = "3.2.1"
 
 fun isNonStable(version: String): Boolean {
     val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
@@ -41,6 +42,7 @@ application {
 dependencies {
     //libs
     implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
 
 
     // Align versions of all Kotlin components
@@ -56,9 +58,19 @@ dependencies {
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
 
+    implementation("io.ktor:ktor-client-core:${ktorVersion}")
+    implementation("io.ktor:ktor-client-apache:${ktorVersion}")
+    implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
+    implementation("io.ktor:ktor-client-logging:${ktorVersion}")
+    implementation("io.ktor:ktor-http:${ktorVersion}")
+
+
     // Avro
     implementation("io.confluent:kafka-avro-serializer:${confluentVersion}")
     implementation("org.apache.avro:avro:${avroVersion}")
+
+    // Caching
+    implementation("com.github.ben-manes.caffeine:caffeine:${caffeineVersion}")
 }
 
 spotless {
