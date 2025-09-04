@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.journalposthendelser.consumer
 
+import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import no.nav.tiltakspenger.journalposthendelser.Configuration
@@ -22,7 +23,7 @@ class JournalposthendelseConsumer(
         topic = topic,
         config = kafkaConfig.consumerConfig(
             keyDeserializer = StringDeserializer(),
-            valueDeserializer = StringDeserializer(),
+            valueDeserializer = KafkaAvroDeserializer(),
             groupId = groupId,
         ),
         consume = ::consume,
