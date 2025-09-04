@@ -10,9 +10,14 @@ private const val APPLICATION_NAME = "tiltakspenger-journalposthendelser"
 const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer"
 
 object Configuration {
-    val topic = getEnvVar("AAPEN_DOK_JOURNALFOERING_TOPIC")
     val applicationHttpPort = getEnvVar("PORT", 8084.toString()).toInt()
+    val aadAccessTokenV2Url: String = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT")
+    val clientIdV2: String = getEnvVar("AZURE_APP_CLIENT_ID")
+    val clientSecretV2: String = getEnvVar("AZURE_APP_CLIENT_SECRET")
     val logbackConfigFile = getEnvVar("LOGBACK_CONFIG_FILE", "logback.local.xml")
+    val safUrl: String = getEnvVar("SAF_URL")
+    val safScope: String = getEnvVar("SAF_SCOPE")
+    val topic = getEnvVar("AAPEN_DOK_JOURNALFOERING_TOPIC")
 
     fun isNais() = applicationProfile() != Profile.LOCAL
 

@@ -30,12 +30,16 @@ spec:
         - application: logging
           namespace: nais-system
   env:
-    - name: AAPEN_DOK_JOURNALFOERING_TOPIC
-      value: {{ topic }}
     - name: PORT
       value: "8080"
     - name: LOGBACK_CONFIG_FILE
       value: "logback.xml"
+    - name: AAPEN_DOK_JOURNALFOERING_TOPIC
+      value: { { topic } }
+    - name: SAF_URL
+      value: {{ saf.url }}
+    - name: SAF_SCOPE
+      value: {{ saf.scope }}
   observability:
     autoInstrumentation:
       enabled: true

@@ -41,6 +41,7 @@ application {
 
 dependencies {
     //libs
+    implementation("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
 
@@ -57,13 +58,14 @@ dependencies {
     // Http
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
-
     implementation("io.ktor:ktor-client-core:${ktorVersion}")
     implementation("io.ktor:ktor-client-apache:${ktorVersion}")
     implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
     implementation("io.ktor:ktor-client-logging:${ktorVersion}")
     implementation("io.ktor:ktor-http:${ktorVersion}")
 
+    // Jackson
+    implementation("io.ktor:ktor-serialization-jackson:${ktorVersion}")
 
     // Avro
     implementation("io.confluent:kafka-avro-serializer:${confluentVersion}")

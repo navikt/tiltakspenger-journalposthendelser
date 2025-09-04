@@ -6,3 +6,6 @@ naisEnv: dev
 ingress:
   url: https://tiltakspenger-journalposthendelser.intern.dev.nav.no
 topic: teamdokumenthandtering.aapen-dok-journalfoering
+saf:
+  url: https://saf.dev-fss-pub.nais.io
+  scope: api://dev-fss.teamdokumenthandtering.saf-q1/.default
