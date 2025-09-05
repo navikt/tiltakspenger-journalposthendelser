@@ -41,8 +41,8 @@ class JournalposthendelseConsumer(
                     mottakskanal=${value.mottaksKanal}
                 """.trimIndent()
             }
-
-            journalpostService.hentJournalpost(value.journalpostId)
+            // TODO Kommenter inn igjen når vi har tilgang til å hente journalpost fra SAF
+            // journalpostService.hentJournalpost(value.journalpostId)
         }
     }
 
