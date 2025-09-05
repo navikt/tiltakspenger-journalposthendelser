@@ -19,6 +19,18 @@ class JournalpostService(
             """.trimIndent()
         }
 
+        /*
+            TODO - utifra brevkode, må vi bestemme hva vi skal gjøre.
+                Vi må filtrere vekk de som er ferdigstilt, og jobbe videre kun med dem som ikke er ferdigstilt.
+                I utgangspunktet:
+                    For klage: Så skal vi bare lage en oppgave i gosys. Kanskje denne appen skal gjøre det?
+                    For søknader: Disse skal mest sannsynlig sendes til saksbeahndlings-api for videre behandling.
+
+                Eksempel kodeverk:
+                    NAV 76-13.45 - søknad
+                    NAV 90-00.08 K - klage
+         */
+
         return journalpost
     }
 }

@@ -1,0 +1,28 @@
+# Hvordan teste graphql-kall med intellij plugin:
+# 1. Last ned GraphQL plugin
+# 2. legg inn / finn querien du vil bruke
+#   - Se eksempel på hvordan en query kan bli lagt inn
+# 3. Hent ut et saksbehandler token fra IDA (ida.intern.nav.no)
+#   - Her må du eie selv eie en saksbehandler for å kunne hente token / spør noen i teamet om dem kan generere token for deg
+#   - Naviger til AAD On-Behalf-of Token
+#   - Klikk på logg på Azure AD, og logg på
+#   - lim inn client-id til appen du skal kalle på (gjerne legg inn hva client-id er i instillingene med querien)
+#   - så klikk generer on-behalf-of token
+#   - kopier og lim inn tokenet i `Authorization` under `headers` for querien din
+#       - eksempel: `Authorization: bearer MIN_TOKEN`
+#  4. Gå til der du har definert querien din, og velg den i headeren
+#  5. Legg inn nødvendige variabler som skal sendes med
+#  6. Execute graphql query
+#  7. Se på responsen
+#  8. :)
+
+schema: schema.graphql
+documents: '**/*.graphqls'
+include: ["./**"]
+extensions:
+  endpoints:
+    One:
+      url: https://saf.dev.intern.nav.no/graphql
+      dev-client-id: dev-fss.teamdokumenthandtering.saf
+      headers:
+        Authorization: bearer <insert here>
