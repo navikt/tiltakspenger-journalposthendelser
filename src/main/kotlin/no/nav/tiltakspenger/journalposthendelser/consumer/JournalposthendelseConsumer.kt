@@ -32,7 +32,14 @@ class JournalposthendelseConsumer(
 
     override suspend fun consume(key: String, value: JournalfoeringHendelseRecord) {
         if (value.hendelsesType == "JournalpostMottatt" && value.temaNytt == "IND") {
-            log.info { "Hendelse er av typen JournalpostMottatt ${value.journalpostId}" }
+            log.info {
+                """
+                    Journalposthendelse for tiltakspenger (${value.temaNytt}, 
+                    journalpostId=${value.journalpostId}, 
+                    hendelsesType=${value.hendelsesType}, 
+                    mottakskanal=${value.mottaksKanal}
+                """.trimIndent()
+            }
         }
     }
 

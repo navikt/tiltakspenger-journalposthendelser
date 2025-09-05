@@ -53,7 +53,7 @@ class SafJournalpostClient(
             return null
         }
         if (findJournalpostResponse.errors != null) {
-            findJournalpostResponse.errors.forEach { log.atError { "Saf kastet error: $it" } }
+            findJournalpostResponse.errors.forEach { log.error { "Saf kastet error: $it" } }
             return null
         }
 
