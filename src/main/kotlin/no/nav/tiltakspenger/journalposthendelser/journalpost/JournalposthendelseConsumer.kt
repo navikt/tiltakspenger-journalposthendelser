@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.journalposthendelser.consumer
+package no.nav.tiltakspenger.journalposthendelser.journalpost
 
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -16,6 +16,7 @@ class JournalposthendelseConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "latest") else LocalKafkaConfig(),
+    private val journalpostService: JournalpostService,
 ) : Consumer<String, JournalfoeringHendelseRecord> {
     private val log = KotlinLogging.logger { }
 
@@ -40,6 +41,8 @@ class JournalposthendelseConsumer(
                     mottakskanal=${value.mottaksKanal}
                 """.trimIndent()
             }
+
+            journalpostService.hentJournalpost(value.journalpostId)
         }
     }
 

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.journalposthendelser.saf
+package no.nav.tiltakspenger.journalposthendelser.journalpost
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
@@ -17,10 +17,15 @@ class SafJournalpostClient(
     private val scope: String,
 ) {
     val log = KotlinLogging.logger {}
+    private val journalPostQuery =
+        SafJournalpostClient::class
+            .java
+            .getResource("/graphql/findJournalpost.graphql")!!
+            .readText()
+            .replace(Regex("[\n\t]"), "")
 
     suspend fun getJournalpostMetadata(
         journalpostId: String,
-        findJournalpostGraphQlQuery: String,
     ): JournalpostMetadata? {
         val accessToken = accessTokenClientV2.getAccessToken(scope)
         if (accessToken?.accessToken == null) {
@@ -29,11 +34,8 @@ class SafJournalpostClient(
 
         val findJournalpostRequest =
             FindJournalpostRequest(
-                query = findJournalpostGraphQlQuery,
-                variables =
-                Variables(
-                    id = journalpostId,
-                ),
+                query = journalPostQuery,
+                variables = Variables(journalpostId),
             )
 
         val findJournalpostResponse =
@@ -64,21 +66,17 @@ class SafJournalpostClient(
 
         val journalpost = findJournalpostResponse.data.journalpost
 
-        val dokumentId: String? = finnDokumentIdForOcr(journalpost.dokumenter)
         return journalpost.let {
-            val dokumenter = finnDokumentIdForPdf(journalpost.dokumenter)
-
             JournalpostMetadata(
                 bruker =
                 Bruker(
                     it.bruker?.id,
                     it.bruker?.type,
                 ),
-                dokumentInfoId = dokumentId,
-                jpErIkkeJournalfort = erIkkeJournalfort(it.journalstatus),
+                journalpostErIkkeJournalfort = erIkkeJournalfort(it.journalstatus),
                 datoOpprettet = dateTimeStringTilLocalDateTime(it.datoOpprettet),
-                dokumentInfoIdPdf = dokumenter?.first()?.dokumentInfoId,
-                dokumenter = dokumenter,
+                dokumentInfoIdPdf = journalpost.dokumenter?.first()?.dokumentInfoId,
+                dokumenter = journalpost.dokumenter,
             )
         }
     }
@@ -102,38 +100,6 @@ class SafJournalpostClient(
         log.error { "Journalpost mangler datoOpprettet $dateTime" }
         return null
     }
-
-    fun finnDokumentIdForOcr(dokumentListe: List<Dokument>?): String? {
-        dokumentListe?.forEach { dokument ->
-            dokument.dokumentvarianter.forEach {
-                if (it.variantformat.name == "ORIGINAL") {
-                    log.info {
-                        "Fant OCR-dokument dokumentInfoId: ${dokument.dokumentInfoId}"
-                    }
-                    return dokument.dokumentInfoId
-                }
-            }
-        }
-        log.warn { "Fant ikke OCR-dokument $dokumentListe" }
-        return null
-    }
-
-    fun finnDokumentIdForPdf(
-        dokumentListe: List<Dokument>?,
-    ): List<DokumentMedTittel>? {
-        val dokumenter =
-            dokumentListe
-                ?.filter {
-                    it.dokumentvarianter.any { variant -> variant.variantformat.name == "ARKIV" }
-                }
-                ?.map { dokument ->
-                    DokumentMedTittel(
-                        tittel = dokument.tittel ?: "Dokument uten tittel",
-                        dokumentInfoId = dokument.dokumentInfoId,
-                    )
-                }
-        return dokumenter
-    }
 }
 
 data class GraphQLResponse<T>(
@@ -156,11 +122,6 @@ data class ErrorLocation(
 data class ErrorExtension(
     val code: String?,
     val classification: String?,
-)
-
-data class DokumentMedTittel(
-    val tittel: String,
-    val dokumentInfoId: String,
 )
 
 data class FindJournalpostRequest(val query: String, val variables: Variables)
