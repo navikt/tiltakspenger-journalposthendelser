@@ -34,7 +34,7 @@ class JournalposthendelseConsumer(
         if (value.hendelsesType == "JournalpostMottatt" && value.temaNytt == "IND") {
             log.info {
                 """
-                    Journalposthendelse for tiltakspenger (${value.temaNytt}, 
+                    Journalposthendelse for tiltakspenger (${value.temaNytt}), 
                     journalpostId=${value.journalpostId}, 
                     hendelsesType=${value.hendelsesType}, 
                     mottakskanal=${value.mottaksKanal}
