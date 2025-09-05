@@ -10,6 +10,9 @@ import io.ktor.http.HttpHeaders
 import no.nav.tiltakspenger.journalposthendelser.azure.v2.AzureAdV2Client
 import java.time.LocalDateTime
 
+/*
+ https://confluence.adeo.no/spaces/BOA/pages/309563005/saf
+ */
 class SafJournalpostClient(
     private val httpClient: HttpClient,
     private val basePath: String,
