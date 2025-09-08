@@ -8,4 +8,4 @@ ingress:
 topic: teamdokumenthandtering.aapen-dok-journalfoering
 saf:
   url: https://saf.dev-fss-pub.nais.io
-  scope: api://dev-fss.teamdokumenthandtering.saf-q1/.default
+  scope: api://dev-fss.teamdokumenthandtering.saf/.default

@@ -32,6 +32,8 @@ spec:
       rules:
         - application: logging
           namespace: nais-system
+      external:
+       - host: {{ saf.url }}
   env:
     - name: PORT
       value: "8080"
