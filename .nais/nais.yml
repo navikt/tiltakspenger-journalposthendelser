@@ -34,7 +34,7 @@ spec:
         - application: logging
           namespace: nais-system
       external:
-       - host: {{ saf.url }}
+       - host: {{ saf.outbound }}
   env:
     - name: PORT
       value: "8080"

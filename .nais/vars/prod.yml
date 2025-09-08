@@ -9,5 +9,6 @@ topic: teamdokumenthandtering.aapen-dok-journalfoering
 saf:
   url: https://saf.prod-fss-pub.nais.io
   scope: api://prod-fss.teamdokumenthandtering.saf/.default
+  outbound: saf.prod-fss-pub.nais.io
 azure:
   tenant: nav.no
