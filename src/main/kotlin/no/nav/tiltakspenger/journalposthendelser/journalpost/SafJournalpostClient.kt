@@ -43,7 +43,7 @@ class SafJournalpostClient(
 
         val findJournalpostResponse =
             httpClient
-                .post(basePath) {
+                .post("$basePath/graphql") {
                     setBody(findJournalpostRequest)
                     headers {
                         append(HttpHeaders.Authorization, "Bearer ${accessToken.accessToken}")
