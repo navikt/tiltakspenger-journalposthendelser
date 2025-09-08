@@ -13,8 +13,6 @@ spec:
     min: {{ replicas.min }}
     max: {{ replicas.max }}
   {{/with}}
-  ingresses:
-    - {{ ingress.url }}
   liveness:
     path: /isalive
   readiness:
@@ -27,7 +25,6 @@ spec:
   azure:
     application:
       enabled: true
-      tenant: {{ azure.tenant }}
   accessPolicy:
     outbound:
       rules:

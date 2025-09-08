@@ -41,9 +41,11 @@ application {
 
 dependencies {
     //libs
+    implementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:texas:$felleslibVersion")
 
 
     // Align versions of all Kotlin components
@@ -63,6 +65,10 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
     implementation("io.ktor:ktor-client-logging:${ktorVersion}")
     implementation("io.ktor:ktor-http:${ktorVersion}")
+
+    // Autentisering og validering av tokens
+    implementation("io.ktor:ktor-server-auth:${ktorVersion}")
+    implementation("io.ktor:ktor-server-auth-jwt:${ktorVersion}")
 
     // Jackson
     implementation("io.ktor:ktor-serialization-jackson:${ktorVersion}")

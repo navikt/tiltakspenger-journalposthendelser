@@ -11,13 +11,13 @@ const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer"
 
 object Configuration {
     val applicationHttpPort = getEnvVar("PORT", 8084.toString()).toInt()
-    val aadAccessTokenV2Url: String = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT")
-    val clientIdV2: String = getEnvVar("AZURE_APP_CLIENT_ID")
-    val clientSecretV2: String = getEnvVar("AZURE_APP_CLIENT_SECRET")
     val logbackConfigFile = getEnvVar("LOGBACK_CONFIG_FILE", "logback.local.xml")
     val safUrl: String = getEnvVar("SAF_URL")
     val safScope: String = getEnvVar("SAF_SCOPE")
     val topic = getEnvVar("AAPEN_DOK_JOURNALFOERING_TOPIC")
+    val naisTokenIntrospectionEndpoint = getEnvVar("NAIS_TOKEN_INTROSPECION_ENDPOINT")
+    val naisTokenEndpoint = getEnvVar("NAIS_TOKEN_ENDPOINT")
+    val tokenExchangeEndpoint = getEnvVar("NAIS_TOKEN_EXCHANGE_ENDPOINT")
 
     fun isNais() = applicationProfile() != Profile.LOCAL
 

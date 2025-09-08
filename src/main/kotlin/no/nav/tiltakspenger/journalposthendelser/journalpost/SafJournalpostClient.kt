@@ -7,7 +7,7 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpHeaders
-import no.nav.tiltakspenger.journalposthendelser.azure.v2.AzureAdV2Client
+import no.nav.tiltakspenger.libs.common.AccessToken
 import java.time.LocalDateTime
 
 /*
@@ -16,8 +16,7 @@ import java.time.LocalDateTime
 class SafJournalpostClient(
     private val httpClient: HttpClient,
     private val basePath: String,
-    private val accessTokenClientV2: AzureAdV2Client,
-    private val scope: String,
+    private val getToken: suspend () -> AccessToken,
 ) {
     val log = KotlinLogging.logger {}
     private val journalPostQuery =
@@ -30,10 +29,7 @@ class SafJournalpostClient(
     suspend fun getJournalpostMetadata(
         journalpostId: String,
     ): JournalpostMetadata? {
-        val accessToken = accessTokenClientV2.getAccessToken(scope)
-        if (accessToken?.accessToken == null) {
-            throw RuntimeException("Klarte ikke hente ut accesstoken for Saf")
-        }
+        val accessToken = getToken().token
 
         val findJournalpostRequest =
             FindJournalpostRequest(
@@ -46,7 +42,7 @@ class SafJournalpostClient(
                 .post("$basePath/graphql") {
                     setBody(findJournalpostRequest)
                     headers {
-                        append(HttpHeaders.Authorization, "Bearer ${accessToken.accessToken}")
+                        append(HttpHeaders.Authorization, "Bearer $accessToken")
                         append("X-Correlation-ID", journalpostId)
                         append(HttpHeaders.ContentType, "application/json")
                     }

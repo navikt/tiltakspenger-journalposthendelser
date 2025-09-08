@@ -1,30 +1,26 @@
 package no.nav.tiltakspenger.journalposthendelser.context
 
 import no.nav.tiltakspenger.journalposthendelser.Configuration
-import no.nav.tiltakspenger.journalposthendelser.azure.v2.AzureAdV2Cache
-import no.nav.tiltakspenger.journalposthendelser.azure.v2.AzureAdV2Client
 import no.nav.tiltakspenger.journalposthendelser.infra.httpClientApache
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalpostService
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseConsumer
 import no.nav.tiltakspenger.journalposthendelser.journalpost.SafJournalpostClient
+import no.nav.tiltakspenger.libs.texas.IdentityProvider
+import no.nav.tiltakspenger.libs.texas.client.TexasClient
+import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
 
 open class ApplicationContext {
-    open val azureAdV2Client by lazy {
-        AzureAdV2Client(
-            httpClient = httpClientApache(60),
-            azureAdV2Cache = AzureAdV2Cache(),
-            azureAppClientId = Configuration.clientIdV2,
-            azureAppClientSecret = Configuration.clientSecretV2,
-            azureTokenEndpoint = Configuration.aadAccessTokenV2Url,
-        )
-    }
+    val texasClient: TexasClient = TexasHttpClient(
+        introspectionUrl = Configuration.naisTokenIntrospectionEndpoint,
+        tokenUrl = Configuration.naisTokenEndpoint,
+        tokenExchangeUrl = Configuration.tokenExchangeEndpoint,
+    )
 
     open val safJournalpostClient by lazy {
         SafJournalpostClient(
             basePath = Configuration.safUrl,
-            scope = Configuration.safScope,
             httpClient = httpClientApache(60),
-            accessTokenClientV2 = azureAdV2Client,
+            getToken = { texasClient.getSystemToken(Configuration.safScope, IdentityProvider.AZUREAD, rewriteAudienceTarget = false) },
         )
     }
 
