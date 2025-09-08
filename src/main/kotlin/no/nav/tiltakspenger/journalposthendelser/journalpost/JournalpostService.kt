@@ -11,7 +11,7 @@ class JournalpostService(
         val journalpost = safJournalpostClient.getJournalpostMetadata(journalpostId.toString())
 
         log.info {
-            """Journalpost $journalpostId,
+            """Journalpost journalpostId=$journalpostId,
                 journalpostErIkkeJournalfort=${journalpost?.journalpostErIkkeJournalfort},
                 datoOpprettet=${journalpost?.datoOpprettet},
                 antallDokumenter=${journalpost?.dokumenter?.size ?: 0},
