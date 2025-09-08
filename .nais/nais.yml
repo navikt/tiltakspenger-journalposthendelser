@@ -27,6 +27,7 @@ spec:
   azure:
     application:
       enabled: true
+      tenant: {{ azure.tenant }}
   accessPolicy:
     outbound:
       rules:
