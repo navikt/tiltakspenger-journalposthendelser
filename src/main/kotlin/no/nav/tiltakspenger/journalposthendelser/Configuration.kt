@@ -15,7 +15,7 @@ object Configuration {
     val safUrl: String = getEnvVar("SAF_URL")
     val safScope: String = getEnvVar("SAF_SCOPE")
     val topic = getEnvVar("AAPEN_DOK_JOURNALFOERING_TOPIC")
-    val naisTokenIntrospectionEndpoint = getEnvVar("NAIS_TOKEN_INTROSPECION_ENDPOINT")
+    val naisTokenIntrospectionEndpoint = getEnvVar("NAIS_TOKEN_INTROSPECTION_ENDPOINT")
     val naisTokenEndpoint = getEnvVar("NAIS_TOKEN_ENDPOINT")
     val tokenExchangeEndpoint = getEnvVar("NAIS_TOKEN_EXCHANGE_ENDPOINT")
 
