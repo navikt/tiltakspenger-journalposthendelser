@@ -57,6 +57,7 @@ class SafJournalpostClient(
             log.error { "Kall til SAF feilet for $journalpostId" }
             return null
         }
+
         if (findJournalpostResponse.errors != null) {
             findJournalpostResponse.errors.forEach { log.error { "Saf kastet error: $it" } }
             return null

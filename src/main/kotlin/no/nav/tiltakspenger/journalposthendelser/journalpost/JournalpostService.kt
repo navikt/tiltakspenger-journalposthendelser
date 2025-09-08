@@ -9,13 +9,16 @@ class JournalpostService(
 
     suspend fun hentJournalpost(journalpostId: Long): JournalpostMetadata? {
         val journalpost = safJournalpostClient.getJournalpostMetadata(journalpostId.toString())
+            ?: throw IllegalStateException(
+                "Unable to find journalpost with id $journalpostId",
+            )
 
         log.info {
             """Journalpost journalpostId=$journalpostId,
-                journalpostErIkkeJournalfort=${journalpost?.journalpostErIkkeJournalfort},
-                datoOpprettet=${journalpost?.datoOpprettet},
-                antallDokumenter=${journalpost?.dokumenter?.size ?: 0},
-                brevkoder=${journalpost?.dokumenter?.mapNotNull { it.brevkode }},
+                journalpostErIkkeJournalfort=${journalpost.journalpostErIkkeJournalfort},
+                datoOpprettet=${journalpost.datoOpprettet},
+                antallDokumenter=${journalpost.dokumenter?.size ?: 0},
+                brevkoder=${journalpost.dokumenter?.mapNotNull { it.brevkode }},
             """.trimIndent()
         }
 
