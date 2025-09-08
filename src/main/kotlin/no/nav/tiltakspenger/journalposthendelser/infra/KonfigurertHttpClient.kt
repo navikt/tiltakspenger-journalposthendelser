@@ -49,5 +49,4 @@ private fun HttpClient.config(timeout: Long) =
                 }
             level = LogLevel.INFO
         }
-        expectSuccess = true
     }
