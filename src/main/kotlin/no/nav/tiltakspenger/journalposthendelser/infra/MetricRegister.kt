@@ -12,7 +12,7 @@ object MetricRegister {
         .register()
 
     val SØKNAD_MOTTATT: Counter = Counter.builder()
-        .name("${METRICS_NS}_papirsøknad_count")
+        .name("${METRICS_NS}_soknad_count")
         .help("Antall papirsøknader")
         .withoutExemplars()
         .register()
