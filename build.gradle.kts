@@ -9,6 +9,7 @@ val ktorVersion = "3.2.3"
 val confluentVersion = "8.0.0"
 val avroVersion = "1.12.0"
 val caffeineVersion = "3.2.2"
+val mockkVersion = "1.14.5"
 
 fun isNonStable(version: String): Boolean {
     val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
@@ -79,6 +80,14 @@ dependencies {
 
     // Caching
     implementation("com.github.ben-manes.caffeine:caffeine:${caffeineVersion}")
+
+    // Test
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(platform("org.junit:junit-bom:5.13.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("io.mockk:mockk:${mockkVersion}")
+    testImplementation("io.mockk:mockk-dsl-jvm:${mockkVersion}")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
 }
 
 spotless {

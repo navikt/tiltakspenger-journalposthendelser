@@ -10,8 +10,9 @@ import io.ktor.http.HttpHeaders
 import no.nav.tiltakspenger.libs.common.AccessToken
 import java.time.LocalDateTime
 
-/*
- https://confluence.adeo.no/spaces/BOA/pages/309563005/saf
+/**
+ * Dokumentasjon for SAF
+ * https://confluence.adeo.no/x/fY5zEg
  */
 class SafJournalpostClient(
     private val httpClient: HttpClient,
