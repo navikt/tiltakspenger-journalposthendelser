@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.KAFKA_CONSUMER_GROUP_ID
+import no.nav.tiltakspenger.journalposthendelser.infra.MetricRegister
 import no.nav.tiltakspenger.libs.kafka.Consumer
 import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
@@ -45,6 +46,7 @@ class JournalposthendelseConsumer(
                     mottakskanal=${value.mottaksKanal}
                 """.trimIndent()
             }
+            MetricRegister.JOURNALPOSTHENDELSE_MOTTATT.inc()
             journalpostService.hentJournalpost(value.journalpostId)
         }
     }

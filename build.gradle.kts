@@ -10,6 +10,8 @@ val confluentVersion = "8.0.0"
 val avroVersion = "1.12.0"
 val caffeineVersion = "3.2.2"
 val mockkVersion = "1.14.5"
+val prometeusVersion = "1.15.4"
+
 
 fun isNonStable(version: String): Boolean {
     val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
@@ -48,7 +50,6 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:texas:$felleslibVersion")
 
-
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation(kotlin("stdlib"))
@@ -66,6 +67,9 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
     implementation("io.ktor:ktor-client-logging:${ktorVersion}")
     implementation("io.ktor:ktor-http:${ktorVersion}")
+    implementation("io.ktor:ktor-server-metrics-micrometer:${ktorVersion}")
+
+    implementation("io.micrometer:micrometer-registry-prometheus:${prometeusVersion}")
 
     // Autentisering og validering av tokens
     implementation("io.ktor:ktor-server-auth:${ktorVersion}")
