@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
 import io.mockk.clearAllMocks
-import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -33,7 +33,7 @@ class JournalposthendelseConsumerTest {
             temaNytt = "IND",
         )
 
-        coEvery { journalpostService.hentJournalpost(any()) } returns null
+        coJustRun { journalpostService.hentJournalpost(any()) }
 
         consumer.consume("key", hendelseRecord)
 

@@ -32,7 +32,7 @@ fun start(
         factory = Netty,
         port = port,
         module = {
-            journalposthendelser(applicationContext = applicationContext)
+            journalposthendelser()
         },
     )
     server.application.attributes.put(isReadyKey, true)

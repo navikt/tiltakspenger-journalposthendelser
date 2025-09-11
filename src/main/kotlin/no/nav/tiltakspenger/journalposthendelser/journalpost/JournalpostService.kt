@@ -1,13 +1,14 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import no.nav.tiltakspenger.journalposthendelser.infra.MetricRegister
 
 class JournalpostService(
     private val safJournalpostClient: SafJournalpostClient,
 ) {
     val log = KotlinLogging.logger {}
 
-    suspend fun hentJournalpost(journalpostId: Long): JournalpostMetadata? {
+    suspend fun hentJournalpost(journalpostId: Long) {
         val journalpost = safJournalpostClient.getJournalpostMetadata(journalpostId.toString())
             ?: throw IllegalStateException(
                 "Unable to find journalpost with id $journalpostId",
@@ -22,18 +23,42 @@ class JournalpostService(
             """.trimIndent()
         }
 
-        /*
-            TODO - utifra brevkode, må vi bestemme hva vi skal gjøre.
-                Vi må filtrere vekk de som er ferdigstilt, og jobbe videre kun med dem som ikke er ferdigstilt.
-                I utgangspunktet:
-                    For klage: Så skal vi bare lage en oppgave i gosys. Kanskje denne appen skal gjøre det?
-                    For søknader: Disse skal mest sannsynlig sendes til saksbeahndlings-api for videre behandling.
+        if (journalpost.journalpostErIkkeJournalfort) {
+            val brevkoder = journalpost.dokumenter?.mapNotNull { it.brevkode } ?: emptyList()
 
-                Eksempel kodeverk:
-                    NAV 76-13.45 - søknad
-                    NAV 90-00.08 K - klage
-         */
+            if (brevkoder.contains(Brevkode.SØKNAD.brevkode)) {
+                prosesserSøknad(journalpost)
+            } else if (brevkoder.contains(Brevkode.KLAGE.brevkode)) {
+                prosesserKlage(journalpost)
+            } else if (brevkoder.contains(Brevkode.MELDEKORT.brevkode)) {
+                prosesserMeldekort(journalpost)
+            } else {
+                log.info { "Annen brevkode mottatt: $brevkoder" }
+                MetricRegister.ANNEN_BREVKODE_MOTTATT.inc()
+            }
+        }
+    }
 
-        return journalpost
+    /**
+     * TODO Opprett oppgave i Gosys eller varsle om det i benken i tp-sak?
+     * Kan vi anta at det er papirsøknad hvis den ikke er journalført?
+     */
+    private fun prosesserSøknad(journalpost: JournalpostMetadata) {
+        MetricRegister.SØKNAD_MOTTATT.inc()
+    }
+
+    /**
+     * TODO Opprett oppgave i Gosys?
+     */
+    private fun prosesserKlage(journalpost: JournalpostMetadata) {
+        MetricRegister.KLAGE_MOTTATT.inc()
+    }
+
+    /**
+     * TODO Vi må på sikt ta over håndteringen av journalpost hendelser for meldekort
+     * Er disse papirmeldekort og/eller arena-meldekort som ikke er plukket opp ennå.
+     */
+    private fun prosesserMeldekort(journalpost: JournalpostMetadata) {
+        MetricRegister.MELDEKORT_MOTTATT.inc()
     }
 }
