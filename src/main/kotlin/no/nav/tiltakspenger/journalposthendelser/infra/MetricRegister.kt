@@ -23,6 +23,12 @@ object MetricRegister {
         .withoutExemplars()
         .register()
 
+    val MELDEKORT_MOTTATT: Counter = Counter.builder()
+        .name("${METRICS_NS}_meldekort_count")
+        .help("Antall meldekort mottatt")
+        .withoutExemplars()
+        .register()
+
     val ANNEN_BREVKODE_MOTTATT: Counter = Counter.builder()
         .name("${METRICS_NS}_annen_brevkode_count")
         .help("Antall mottatte journalposterhendelser som ikke skal håndteres per nå")

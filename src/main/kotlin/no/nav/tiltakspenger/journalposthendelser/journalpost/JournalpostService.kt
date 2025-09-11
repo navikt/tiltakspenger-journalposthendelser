@@ -30,20 +30,35 @@ class JournalpostService(
                 prosesserSøknad(journalpost)
             } else if (brevkoder.contains(Brevkode.KLAGE.brevkode)) {
                 prosesserKlage(journalpost)
+            } else if (brevkoder.contains(Brevkode.MELDEKORT.brevkode)) {
+                prosesserMeldekort(journalpost)
             } else {
+                log.info { "Annen brevkode mottatt: $brevkoder" }
                 MetricRegister.ANNEN_BREVKODE_MOTTATT.inc()
             }
         }
     }
 
-    // TODO Kan vi anta at det er papirsøknad hvis den ikke er journalført?
+    /**
+     * TODO Opprett oppgave i Gosys eller varsle om det i benken i tp-sak?
+     * Kan vi anta at det er papirsøknad hvis den ikke er journalført?
+     */
     private fun prosesserSøknad(journalpost: JournalpostMetadata) {
         MetricRegister.SØKNAD_MOTTATT.inc()
-        // TODO Opprett oppgave i Gosys eller varsle om det i benken i tp-sak?
     }
 
+    /**
+     * TODO Opprett oppgave i Gosys?
+     */
     private fun prosesserKlage(journalpost: JournalpostMetadata) {
         MetricRegister.KLAGE_MOTTATT.inc()
-        // TODO Opprett oppgave i Gosys?
+    }
+
+    /**
+     * TODO Vi må på sikt ta over håndteringen av journalpost hendelser for meldekort
+     * Er disse papirmeldekort og/eller arena-meldekort som ikke er plukket opp ennå.
+     */
+    private fun prosesserMeldekort(journalpost: JournalpostMetadata) {
+        MetricRegister.MELDEKORT_MOTTATT.inc()
     }
 }
