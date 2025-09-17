@@ -1,13 +1,16 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
+import io.ktor.http.isSuccess
 import no.nav.tiltakspenger.libs.common.AccessToken
+import no.nav.tiltakspenger.libs.json.objectMapper
 import java.time.LocalDateTime
 
 /**
@@ -38,7 +41,7 @@ class SafJournalpostClient(
                 variables = Variables(journalpostId),
             )
 
-        val findJournalpostResponse =
+        val httpResponse =
             httpClient
                 .post("$basePath/graphql") {
                     setBody(findJournalpostRequest)
@@ -48,7 +51,14 @@ class SafJournalpostClient(
                         append(HttpHeaders.ContentType, "application/json")
                     }
                 }
-                .body<GraphQLResponse<FindJournalpostResponse>?>()
+        val findJournalpostResponseString = httpResponse.bodyAsText()
+        if (!httpResponse.status.isSuccess()) {
+            log.error { "Noe gikk galt ved kall til SAF for journalpostId $journalpostId: feilkode: ${httpResponse.status}, melding: $findJournalpostResponseString" }
+            throw RuntimeException("Noe gikk galt ved kall til SAF")
+        }
+
+        val findJournalpostResponse =
+            objectMapper.readValue<GraphQLResponse<FindJournalpostResponse>?>(findJournalpostResponseString)
 
         if (findJournalpostResponse == null) {
             log.error { "Kall til SAF feilet for $journalpostId" }
