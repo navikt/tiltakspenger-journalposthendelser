@@ -5,6 +5,6 @@ kafka-pool: "nav-dev"
 naisEnv: dev
 topic: teamdokumenthandtering.aapen-dok-journalfoering
 saf:
-  url: https://saf.dev-fss-pub.nais.io
+  url: https://saf-q2.dev-fss-pub.nais.io
   scope: api://dev-fss.teamdokumenthandtering.saf/.default
-  outbound: saf.dev-fss-pub.nais.io
+  outbound: saf-q2.dev-fss-pub.nais.io
