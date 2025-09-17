@@ -8,6 +8,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
+import io.ktor.http.isSuccess
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.objectMapper
 import java.time.LocalDateTime
@@ -40,7 +41,7 @@ class SafJournalpostClient(
                 variables = Variables(journalpostId),
             )
 
-        val findJournalpostResponseString =
+        val httpResponse =
             httpClient
                 .post("$basePath/graphql") {
                     setBody(findJournalpostRequest)
@@ -49,9 +50,12 @@ class SafJournalpostClient(
                         append("X-Correlation-ID", journalpostId)
                         append(HttpHeaders.ContentType, "application/json")
                     }
-                }.bodyAsText()
-
-        log.info { "Response: $findJournalpostResponseString" }
+                }
+        val findJournalpostResponseString = httpResponse.bodyAsText()
+        if (!httpResponse.status.isSuccess()) {
+            log.error { "Noe gikk galt ved kall til SAF for journalpostId $journalpostId: feilkode: ${httpResponse.status}, melding: $findJournalpostResponseString" }
+            throw RuntimeException("Noe gikk galt ved kall til SAF")
+        }
 
         val findJournalpostResponse =
             objectMapper.readValue<GraphQLResponse<FindJournalpostResponse>?>(findJournalpostResponseString)
