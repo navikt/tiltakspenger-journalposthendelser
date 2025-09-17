@@ -1,13 +1,15 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import no.nav.tiltakspenger.libs.common.AccessToken
+import no.nav.tiltakspenger.libs.json.objectMapper
 import java.time.LocalDateTime
 
 /**
@@ -38,7 +40,7 @@ class SafJournalpostClient(
                 variables = Variables(journalpostId),
             )
 
-        val findJournalpostResponse =
+        val findJournalpostResponseString =
             httpClient
                 .post("$basePath/graphql") {
                     setBody(findJournalpostRequest)
@@ -47,8 +49,12 @@ class SafJournalpostClient(
                         append("X-Correlation-ID", journalpostId)
                         append(HttpHeaders.ContentType, "application/json")
                     }
-                }
-                .body<GraphQLResponse<FindJournalpostResponse>?>()
+                }.bodyAsText()
+
+        log.info { "Response: $findJournalpostResponseString" }
+
+        val findJournalpostResponse =
+            objectMapper.readValue<GraphQLResponse<FindJournalpostResponse>?>(findJournalpostResponseString)
 
         if (findJournalpostResponse == null) {
             log.error { "Kall til SAF feilet for $journalpostId" }
