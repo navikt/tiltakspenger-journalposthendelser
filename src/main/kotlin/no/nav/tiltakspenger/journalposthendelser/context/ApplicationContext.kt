@@ -5,8 +5,9 @@ import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.infra.db.DataSourceSetup
 import no.nav.tiltakspenger.journalposthendelser.infra.httpClientApache
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalpostService
-import no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saf.SafJournalpostClient
-import no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saksbehandlingapi.SaksbehandlingApiClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.SafJournalpostClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandlingapi.SaksbehandlingApiClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.JournalposthendelseConsumer
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -46,6 +47,17 @@ open class ApplicationContext(log: KLogger) {
         getToken = {
             texasClient.getSystemToken(
                 Configuration.saksbehandlingApiScope,
+                IdentityProvider.AZUREAD,
+                rewriteAudienceTarget = false,
+            )
+        },
+    )
+    val oppgaveClient = OppgaveClient(
+        basePath = Configuration.oppgaveUrl,
+        httpClient = httpClient,
+        getToken = {
+            texasClient.getSystemToken(
+                Configuration.oppgaveScope,
                 IdentityProvider.AZUREAD,
                 rewriteAudienceTarget = false,
             )

@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saksbehandlingapi
+package no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandlingapi
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient

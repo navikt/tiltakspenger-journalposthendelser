@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saf
+package no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging

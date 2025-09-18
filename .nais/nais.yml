@@ -43,6 +43,7 @@ spec:
         - application: tiltakspenger-saksbehandling-api
       external:
        - host: {{ saf.outbound }}
+       - host: {{ oppgave.outbound }}
   env:
     - name: PORT
       value: "8080"
@@ -58,6 +59,10 @@ spec:
       value: {{ saksbehandlingApi.url }}
     - name: SAKSBEHANDLING_API_SCOPE
       value: {{ saksbehandlingApi.scope }}
+    - name: OPPGAVE_URL
+      value: {{ oppgave.url }}
+    - name: OPPGAVE_SCOPE
+      value: {{ oppgave.scope }}
   observability:
     autoInstrumentation:
       enabled: true

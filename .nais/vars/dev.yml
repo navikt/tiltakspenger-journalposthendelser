@@ -15,3 +15,7 @@ saf:
 saksbehandlingApi:
   url: http://tiltakspenger-saksbehandling-api
   scope: api://dev-gcp.tpts.tiltakspenger-saksbehandling-api/.default
+oppgave:
+  url: https://oppgave.dev-fss-pub.nais.io
+  scope: api://dev-fss.oppgavehandtering.oppgave/.default
+  outbound: oppgave.dev-fss-pub.nais.io
