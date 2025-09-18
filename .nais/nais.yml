@@ -45,6 +45,7 @@ spec:
        - host: {{ saf.outbound }}
        - host: {{ oppgave.outbound }}
        - host: {{ dokarkiv.outbound }}
+       - host: {{ pdl.outbound }}
   env:
     - name: PORT
       value: "8080"
@@ -68,6 +69,10 @@ spec:
       value: {{ dokarkiv.url }}
     - name: DOKARKIV_SCOPE
       value: {{ dokarkiv.scope }}
+    - name: PDL_URL
+      value: {{ pdl.url }}
+    - name: PDL_SCOPE
+      value: {{ pdl.scope }}
   observability:
     autoInstrumentation:
       enabled: true

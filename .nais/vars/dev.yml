@@ -23,3 +23,7 @@ dokarkiv:
   url: https://dokarkiv-q2.dev-fss-pub.nais.io
   scope: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
   outbound: dokarkiv-q2.dev-fss-pub.nais.io
+pdl:
+  url: https://pdl-api.dev-fss-pub.nais.io
+  scope: api://dev-fss.pdl.pdl-api/.default
+  outbound: pdl-api.dev-fss-pub.nais.io

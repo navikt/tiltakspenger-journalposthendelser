@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.journalposthendelser.infra.httpClientApache
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalpostService
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.dokarkiv.DokarkivClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.pdl.PdlClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.SafJournalpostClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandlingapi.SaksbehandlingApiClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.JournalposthendelseConsumer
@@ -37,6 +38,17 @@ open class ApplicationContext(log: KLogger) {
         getToken = {
             texasClient.getSystemToken(
                 Configuration.safScope,
+                IdentityProvider.AZUREAD,
+                rewriteAudienceTarget = false,
+            )
+        },
+    )
+    val pdlClient = PdlClient(
+        basePath = Configuration.pdlUrl,
+        httpClient = httpClient,
+        getToken = {
+            texasClient.getSystemToken(
+                Configuration.pdlScope,
                 IdentityProvider.AZUREAD,
                 rewriteAudienceTarget = false,
             )
