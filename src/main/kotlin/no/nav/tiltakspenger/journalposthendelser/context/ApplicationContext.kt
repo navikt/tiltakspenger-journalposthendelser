@@ -5,6 +5,7 @@ import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.infra.db.DataSourceSetup
 import no.nav.tiltakspenger.journalposthendelser.infra.httpClientApache
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalpostService
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.dokarkiv.DokarkivClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.SafJournalpostClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandlingapi.SaksbehandlingApiClient
@@ -58,6 +59,17 @@ open class ApplicationContext(log: KLogger) {
         getToken = {
             texasClient.getSystemToken(
                 Configuration.oppgaveScope,
+                IdentityProvider.AZUREAD,
+                rewriteAudienceTarget = false,
+            )
+        },
+    )
+    val dokarkivClient = DokarkivClient(
+        basePath = Configuration.dokarkivUrl,
+        httpClient = httpClient,
+        getToken = {
+            texasClient.getSystemToken(
+                Configuration.dokarkivScope,
                 IdentityProvider.AZUREAD,
                 rewriteAudienceTarget = false,
             )

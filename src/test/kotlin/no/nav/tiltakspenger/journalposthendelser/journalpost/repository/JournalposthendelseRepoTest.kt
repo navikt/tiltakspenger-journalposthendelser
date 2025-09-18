@@ -17,7 +17,8 @@ class JournalposthendelseRepoTest {
                 fnr = "12345678910",
                 brevkode = Brevkode.SØKNAD.brevkode,
                 saksnummer = "202509151003",
-                journalpostOppdatertTidspunkt = LocalDateTime.now().minusMinutes(2),
+                journalpostOppdatertTidspunkt = LocalDateTime.now().minusMinutes(3),
+                journalpostFerdigstiltTidspunkt = LocalDateTime.now().minusMinutes(2),
                 oppgaveId = "900000",
                 oppgavetype = "BEHANDLE_SAK",
                 oppgaveOpprettetTidspunkt = LocalDateTime.now().minusMinutes(1),
@@ -32,6 +33,7 @@ class JournalposthendelseRepoTest {
             journalposthendelseFraDb?.brevkode shouldBe journalposthendelseDB.brevkode
             journalposthendelseFraDb?.saksnummer shouldBe journalposthendelseDB.saksnummer
             journalposthendelseFraDb?.journalpostOppdatertTidspunkt shouldBeCloseTo journalposthendelseDB.journalpostOppdatertTidspunkt
+            journalposthendelseFraDb?.journalpostFerdigstiltTidspunkt shouldBeCloseTo journalposthendelseDB.journalpostFerdigstiltTidspunkt
             journalposthendelseFraDb?.oppgaveId shouldBe journalposthendelseDB.oppgaveId
             journalposthendelseFraDb?.oppgavetype shouldBe journalposthendelseDB.oppgavetype
             journalposthendelseFraDb?.oppgaveOpprettetTidspunkt shouldBeCloseTo journalposthendelseDB.oppgaveOpprettetTidspunkt
@@ -49,7 +51,8 @@ class JournalposthendelseRepoTest {
                 fnr = "12345678910",
                 brevkode = Brevkode.SØKNAD.brevkode,
                 saksnummer = "202509151003",
-                journalpostOppdatertTidspunkt = LocalDateTime.now().minusMinutes(2),
+                journalpostOppdatertTidspunkt = LocalDateTime.now().minusMinutes(3),
+                journalpostFerdigstiltTidspunkt = LocalDateTime.now().minusMinutes(2),
                 oppgaveId = null,
                 oppgavetype = null,
                 oppgaveOpprettetTidspunkt = null,
@@ -71,6 +74,7 @@ class JournalposthendelseRepoTest {
             journalposthendelseFraDb?.brevkode shouldBe oppdatertJournalposthendelseDB.brevkode
             journalposthendelseFraDb?.saksnummer shouldBe oppdatertJournalposthendelseDB.saksnummer
             journalposthendelseFraDb?.journalpostOppdatertTidspunkt shouldBeCloseTo oppdatertJournalposthendelseDB.journalpostOppdatertTidspunkt
+            journalposthendelseFraDb?.journalpostFerdigstiltTidspunkt shouldBeCloseTo oppdatertJournalposthendelseDB.journalpostFerdigstiltTidspunkt
             journalposthendelseFraDb?.oppgaveId shouldBe oppdatertJournalposthendelseDB.oppgaveId
             journalposthendelseFraDb?.oppgavetype shouldBe oppdatertJournalposthendelseDB.oppgavetype
             journalposthendelseFraDb?.oppgaveOpprettetTidspunkt shouldBeCloseTo oppdatertJournalposthendelseDB.oppgaveOpprettetTidspunkt

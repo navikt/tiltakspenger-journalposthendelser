@@ -21,10 +21,11 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
  */
 class OppgaveClient(
     private val httpClient: HttpClient,
-    private val basePath: String,
+    basePath: String,
     private val getToken: suspend () -> AccessToken,
 ) {
     private val logger = KotlinLogging.logger {}
+    private val apiPath = "$basePath/api/v1/oppgaver"
 
     suspend fun opprettOppgaveForPapirsoknad(
         fnr: String,
@@ -82,7 +83,7 @@ class OppgaveClient(
         opprettOppgaveRequest: OpprettOppgaveRequest,
         correlationId: CorrelationId,
     ): Int {
-        val httpResponse = httpClient.post("$basePath/api/v1/oppgaver") {
+        val httpResponse = httpClient.post(apiPath) {
             header("X-Correlation-ID", correlationId.toString())
             bearerAuth(getToken().token)
             accept(ContentType.Application.Json)
@@ -104,7 +105,7 @@ class OppgaveClient(
         oppgaveType: String,
         correlationId: CorrelationId,
     ): FinnOppgaveResponse {
-        val httpResponse = httpClient.get("$basePath/api/v1/oppgaver?tema=$TEMA_TILTAKSPENGER&oppgavetype=$oppgaveType&journalpostId=$journalpostId&statuskategori=AAPEN") {
+        val httpResponse = httpClient.get("$apiPath?tema=$TEMA_TILTAKSPENGER&oppgavetype=$oppgaveType&journalpostId=$journalpostId&statuskategori=AAPEN") {
             header("X-Correlation-ID", correlationId.toString())
             bearerAuth(getToken().token)
             accept(ContentType.Application.Json)

@@ -18,6 +18,8 @@ object Configuration {
     val saksbehandlingApiScope: String = getEnvVar("SAKSBEHANDLING_API_SCOPE")
     val oppgaveUrl: String = getEnvVar("OPPGAVE_URL")
     val oppgaveScope: String = getEnvVar("OPPGAVE_SCOPE")
+    val dokarkivUrl: String = getEnvVar("DOKARKIV_URL")
+    val dokarkivScope: String = getEnvVar("DOKARKIV_SCOPE")
 
     val topic = getEnvVar("AAPEN_DOK_JOURNALFOERING_TOPIC")
     val naisTokenIntrospectionEndpoint = getEnvVar("NAIS_TOKEN_INTROSPECTION_ENDPOINT")

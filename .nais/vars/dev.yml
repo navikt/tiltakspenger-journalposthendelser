@@ -19,3 +19,7 @@ oppgave:
   url: https://oppgave.dev-fss-pub.nais.io
   scope: api://dev-fss.oppgavehandtering.oppgave/.default
   outbound: oppgave.dev-fss-pub.nais.io
+dokarkiv:
+  url: https://dokarkiv-q2.dev-fss-pub.nais.io
+  scope: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
+  outbound: dokarkiv-q2.dev-fss-pub.nais.io
