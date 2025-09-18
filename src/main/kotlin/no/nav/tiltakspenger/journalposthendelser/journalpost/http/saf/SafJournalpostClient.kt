@@ -9,6 +9,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
+import no.nav.tiltakspenger.journalposthendelser.infra.graphql.GraphQLResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.objectMapper
@@ -23,7 +24,7 @@ class SafJournalpostClient(
     private val basePath: String,
     private val getToken: suspend () -> AccessToken,
 ) {
-    val log = KotlinLogging.logger {}
+    private val log = KotlinLogging.logger {}
     private val journalPostQuery =
         SafJournalpostClient::class
             .java
@@ -113,28 +114,6 @@ class SafJournalpostClient(
         return null
     }
 }
-
-data class GraphQLResponse<T>(
-    val data: T,
-    val errors: List<ResponseError>?,
-)
-
-data class ResponseError(
-    val message: String?,
-    val locations: List<ErrorLocation>?,
-    val path: List<String>?,
-    val extensions: ErrorExtension?,
-)
-
-data class ErrorLocation(
-    val line: String?,
-    val column: String?,
-)
-
-data class ErrorExtension(
-    val code: String?,
-    val classification: String?,
-)
 
 data class FindJournalpostRequest(val query: String, val variables: Variables)
 
