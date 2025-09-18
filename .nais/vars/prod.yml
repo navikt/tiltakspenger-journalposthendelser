@@ -14,4 +14,4 @@ saf:
   outbound: saf.prod-fss-pub.nais.io
 saksbehandlingApi:
   url: http://tiltakspenger-saksbehandling-api
-  scope: api://prod-gcp.tpts.tiltakspenger-pdfgen/.default
+  scope: api://prod-gcp.tpts.tiltakspenger-saksbehandling-api/.default
