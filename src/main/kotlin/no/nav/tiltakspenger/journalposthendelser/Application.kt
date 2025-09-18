@@ -7,7 +7,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.AttributeKey
 import no.nav.tiltakspenger.journalposthendelser.context.ApplicationContext
-import no.nav.tiltakspenger.journalposthendelser.routes.journalposthendelser
+import no.nav.tiltakspenger.journalposthendelser.routes.setupRoutes
 
 fun main() {
     System.setProperty("logback.configurationFile", Configuration.logbackConfigFile)
@@ -20,7 +20,7 @@ fun main() {
 fun start(
     log: KLogger,
     port: Int = Configuration.applicationHttpPort,
-    applicationContext: ApplicationContext = ApplicationContext(),
+    applicationContext: ApplicationContext = ApplicationContext(log),
 ) {
     Thread.setDefaultUncaughtExceptionHandler { _, e ->
         log.error(e) { e.message }
@@ -32,7 +32,7 @@ fun start(
         factory = Netty,
         port = port,
         module = {
-            journalposthendelser()
+            setupRoutes()
         },
     )
     server.application.attributes.put(isReadyKey, true)

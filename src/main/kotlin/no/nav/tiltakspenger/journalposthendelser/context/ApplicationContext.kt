@@ -1,39 +1,50 @@
 package no.nav.tiltakspenger.journalposthendelser.context
 
+import io.github.oshai.kotlinlogging.KLogger
 import no.nav.tiltakspenger.journalposthendelser.Configuration
+import no.nav.tiltakspenger.journalposthendelser.infra.db.DataSourceSetup
 import no.nav.tiltakspenger.journalposthendelser.infra.httpClientApache
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalpostService
-import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseConsumer
-import no.nav.tiltakspenger.journalposthendelser.journalpost.SafJournalpostClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saf.SafJournalpostClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.JournalposthendelseConsumer
+import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
 
-open class ApplicationContext {
+open class ApplicationContext(log: KLogger) {
+    val dataSource = DataSourceSetup.createDatasource(Configuration.jdbcUrl)
+    val sessionCounter = SessionCounter(log)
+    val sessionFactory = PostgresSessionFactory(dataSource, sessionCounter)
+
+    val journalposthendelseRepo = JournalposthendelseRepo(sessionFactory)
+
     val texasClient: TexasClient = TexasHttpClient(
         introspectionUrl = Configuration.naisTokenIntrospectionEndpoint,
         tokenUrl = Configuration.naisTokenEndpoint,
         tokenExchangeUrl = Configuration.tokenExchangeEndpoint,
     )
 
-    open val safJournalpostClient by lazy {
-        SafJournalpostClient(
-            basePath = Configuration.safUrl,
-            httpClient = httpClientApache(60),
-            getToken = { texasClient.getSystemToken(Configuration.safScope, IdentityProvider.AZUREAD, rewriteAudienceTarget = false) },
-        )
-    }
+    val safJournalpostClient = SafJournalpostClient(
+        basePath = Configuration.safUrl,
+        httpClient = httpClientApache(60),
+        getToken = {
+            texasClient.getSystemToken(
+                Configuration.safScope,
+                IdentityProvider.AZUREAD,
+                rewriteAudienceTarget = false,
+            )
+        },
+    )
 
-    open val journalpostService by lazy {
-        JournalpostService(
-            safJournalpostClient = safJournalpostClient,
-        )
-    }
+    val journalpostService = JournalpostService(
+        safJournalpostClient = safJournalpostClient,
+    )
 
-    open val journalposthendelseConsumer by lazy {
-        JournalposthendelseConsumer(
-            topic = Configuration.topic,
-            journalpostService = journalpostService,
-        )
-    }
+    val journalposthendelseConsumer = JournalposthendelseConsumer(
+        topic = Configuration.topic,
+        journalpostService = journalpostService,
+    )
 }

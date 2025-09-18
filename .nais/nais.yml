@@ -20,6 +20,16 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
+  gcp:
+    sqlInstances:
+      - name: tiltakspenger-journalposthendelser
+        type: POSTGRES_17
+        tier: {{ sqlInstances.tier }}
+        diskAutoresize: {{ sqlInstances.diskAutoresize }}
+        pointInTimeRecovery: {{ sqlInstances.pointInTimeRecovery }}
+        databases:
+          - name: journalposthendelser
+            envVarPrefix: DB
   kafka:
     pool: {{ kafka-pool }}
   azure:

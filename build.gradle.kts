@@ -11,7 +11,8 @@ val avroVersion = "1.12.0"
 val caffeineVersion = "3.2.2"
 val mockkVersion = "1.14.5"
 val prometeusVersion = "1.15.4"
-
+val testContainersVersion = "1.21.3"
+val kotestVersion = "6.0.3"
 
 fun isNonStable(version: String): Boolean {
     val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
@@ -48,6 +49,8 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:persistering-infrastruktur:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:texas:$felleslibVersion")
 
     // Align versions of all Kotlin components
@@ -78,6 +81,12 @@ dependencies {
     // Jackson
     implementation("io.ktor:ktor-serialization-jackson:${ktorVersion}")
 
+    // DB
+    implementation("org.flywaydb:flyway-database-postgresql:11.11.2")
+    implementation("com.zaxxer:HikariCP:7.0.2")
+    implementation("org.postgresql:postgresql:42.7.7")
+    implementation("com.github.seratch:kotliquery:1.9.1")
+
     // Avro
     implementation("io.confluent:kafka-avro-serializer:${confluentVersion}")
     implementation("org.apache.avro:avro:${avroVersion}")
@@ -92,6 +101,11 @@ dependencies {
     testImplementation("io.mockk:mockk:${mockkVersion}")
     testImplementation("io.mockk:mockk-dsl-jvm:${mockkVersion}")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+
+    testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
+    testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
+    testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 }
 
 spotless {

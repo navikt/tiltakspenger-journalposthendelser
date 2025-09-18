@@ -1,5 +1,7 @@
-package no.nav.tiltakspenger.journalposthendelser.journalpost
+package no.nav.tiltakspenger.journalposthendelser.journalpost.domene
 
+import no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saf.Bruker
+import no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saf.Dokument
 import java.time.LocalDateTime
 
 data class JournalpostMetadata(

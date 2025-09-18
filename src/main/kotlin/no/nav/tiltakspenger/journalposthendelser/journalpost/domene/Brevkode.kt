@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.journalposthendelser.journalpost
+package no.nav.tiltakspenger.journalposthendelser.journalpost.domene
 
 /**
  * Dokumentkoder for brevtyper vi mottar, se under IND:

@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.journalposthendelser.journalpost
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saf.SafJournalpostClient
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
