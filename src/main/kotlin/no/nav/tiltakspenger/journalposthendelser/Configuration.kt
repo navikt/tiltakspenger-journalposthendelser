@@ -19,6 +19,8 @@ object Configuration {
     val naisTokenEndpoint = getEnvVar("NAIS_TOKEN_ENDPOINT")
     val tokenExchangeEndpoint = getEnvVar("NAIS_TOKEN_EXCHANGE_ENDPOINT")
 
+    val jdbcUrl = getEnvVar("DB_JDBC_URL")
+
     fun isNais() = applicationProfile() != Profile.LOCAL
 
     fun applicationProfile() =

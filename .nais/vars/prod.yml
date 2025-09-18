@@ -2,6 +2,10 @@ replicas:
   min: 2
   max: 4
 kafka-pool: "nav-prod"
+sqlInstances:
+  diskAutoresize: true
+  pointInTimeRecovery: true
+  tier: db-custom-1-3840
 naisEnv: prod
 topic: teamdokumenthandtering.aapen-dok-journalfoering
 saf:

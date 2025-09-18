@@ -1,4 +1,4 @@
-package no.nav.tiltakspenger.journalposthendelser.journalpost
+package no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saf
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -9,6 +9,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
+import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.objectMapper
 import java.time.LocalDateTime

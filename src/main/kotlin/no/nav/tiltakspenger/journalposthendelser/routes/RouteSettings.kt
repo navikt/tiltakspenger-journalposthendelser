@@ -11,7 +11,7 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.prometheus.metrics.model.registry.PrometheusRegistry
 
-fun Application.journalposthendelser() {
+fun Application.setupRoutes() {
     routing { healthRoutes() }
     metrics()
 }

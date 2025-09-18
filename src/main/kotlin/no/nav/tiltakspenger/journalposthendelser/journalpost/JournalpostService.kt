@@ -2,6 +2,9 @@ package no.nav.tiltakspenger.journalposthendelser.journalpost
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.journalposthendelser.infra.MetricRegister
+import no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saf.SafJournalpostClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
+import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
 
 class JournalpostService(
     private val safJournalpostClient: SafJournalpostClient,
