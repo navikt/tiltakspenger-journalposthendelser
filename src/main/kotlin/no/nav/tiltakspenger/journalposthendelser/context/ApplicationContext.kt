@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.journalposthendelser.infra.db.DataSourceSetup
 import no.nav.tiltakspenger.journalposthendelser.infra.httpClientApache
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalpostService
 import no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saf.SafJournalpostClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.clients.saksbehandlingapi.SaksbehandlingApiClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.JournalposthendelseConsumer
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
@@ -27,12 +28,24 @@ open class ApplicationContext(log: KLogger) {
         tokenExchangeUrl = Configuration.tokenExchangeEndpoint,
     )
 
+    val httpClient = httpClientApache(60)
     val safJournalpostClient = SafJournalpostClient(
         basePath = Configuration.safUrl,
-        httpClient = httpClientApache(60),
+        httpClient = httpClient,
         getToken = {
             texasClient.getSystemToken(
                 Configuration.safScope,
+                IdentityProvider.AZUREAD,
+                rewriteAudienceTarget = false,
+            )
+        },
+    )
+    val saksbehandlingApiClient = SaksbehandlingApiClient(
+        basePath = Configuration.saksbehandlingApiUrl,
+        httpClient = httpClient,
+        getToken = {
+            texasClient.getSystemToken(
+                Configuration.saksbehandlingApiScope,
                 IdentityProvider.AZUREAD,
                 rewriteAudienceTarget = false,
             )
