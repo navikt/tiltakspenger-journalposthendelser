@@ -14,6 +14,9 @@ object Configuration {
     val logbackConfigFile = getEnvVar("LOGBACK_CONFIG_FILE", "logback.local.xml")
     val safUrl: String = getEnvVar("SAF_URL")
     val safScope: String = getEnvVar("SAF_SCOPE")
+    val saksbehandlingApiUrl: String = getEnvVar("SAKSBEHANDLING_API_URL")
+    val saksbehandlingApiScope: String = getEnvVar("SAKSBEHANDLING_API_SCOPE")
+
     val topic = getEnvVar("AAPEN_DOK_JOURNALFOERING_TOPIC")
     val naisTokenIntrospectionEndpoint = getEnvVar("NAIS_TOKEN_INTROSPECTION_ENDPOINT")
     val naisTokenEndpoint = getEnvVar("NAIS_TOKEN_ENDPOINT")
