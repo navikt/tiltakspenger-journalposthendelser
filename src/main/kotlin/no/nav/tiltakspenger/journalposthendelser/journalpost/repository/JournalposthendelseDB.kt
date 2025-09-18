@@ -8,6 +8,7 @@ data class JournalposthendelseDB(
     val saksnummer: String?,
     val brevkode: String?,
     val journalpostOppdatertTidspunkt: LocalDateTime?,
+    val journalpostFerdigstiltTidspunkt: LocalDateTime?,
     val oppgaveId: String?,
     val oppgavetype: String?,
     val oppgaveOpprettetTidspunkt: LocalDateTime?,
