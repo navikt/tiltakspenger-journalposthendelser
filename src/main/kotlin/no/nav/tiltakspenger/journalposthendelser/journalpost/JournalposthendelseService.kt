@@ -69,6 +69,8 @@ class JournalposthendelseService(
                     }
                 }
                 log.info { "Ferdig med å behandle mottatt journalpost $journalpostId" }
+            } else {
+                log.info { "Behandler ikke journalpost $journalpostId som er ferdig behandlet" }
             }
         } else {
             if (!journalpostMetadata.erJournalfort) {
