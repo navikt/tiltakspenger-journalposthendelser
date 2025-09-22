@@ -7,7 +7,7 @@ enum class Profile {
 }
 
 private const val APPLICATION_NAME = "tiltakspenger-journalposthendelser"
-const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer"
+const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer-v1"
 
 object Configuration {
     val applicationHttpPort = getEnvVar("PORT", 8084.toString()).toInt()
@@ -31,6 +31,8 @@ object Configuration {
     val jdbcUrl = getEnvVar("DB_JDBC_URL")
 
     fun isNais() = applicationProfile() != Profile.LOCAL
+
+    fun isProd() = applicationProfile() == Profile.PROD
 
     fun applicationProfile() =
         when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getProperty("NAIS_CLUSTER_NAME")) {

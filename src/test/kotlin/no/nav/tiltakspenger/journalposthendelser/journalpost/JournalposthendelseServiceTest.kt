@@ -10,7 +10,9 @@ import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.dokarkiv.DokarkivClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.FinnOppgaveResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.pdl.PdlClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.Bruker
@@ -43,6 +45,10 @@ class JournalposthendelseServiceTest {
         clearMocks(safJournalpostClient, pdlClient, saksbehandlingApiClient, dokarkivClient, oppgaveClient)
         coEvery { pdlClient.hentGjeldendeIdent(any(), any()) } returns fnr
         coEvery { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) } returns saksnummer
+        coEvery { oppgaveClient.finnOppgave(any(), any(), any()) } returns FinnOppgaveResponse(
+            antallTreffTotalt = 0,
+            oppgaver = emptyList(),
+        )
         coEvery { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) } returns oppgaveId
         coEvery { oppgaveClient.opprettJournalforingsoppgave(any(), any(), any(), any()) } returns oppgaveId
         coEvery { oppgaveClient.opprettFordelingsoppgave(any(), any()) } returns oppgaveId
@@ -62,7 +68,7 @@ class JournalposthendelseServiceTest {
     }
 
     @Test
-    fun `behandleJournalpostHendelse - journalpost er journalfort og finnes ikke i db - ignorerer journalposthendelse`() {
+    fun `behandleJournalpostHendelse - journalpost er journalfort, ingen oppgave, finnes ikke i db - ignorerer journalposthendelse`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
                 coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(erJournalfort = true)
@@ -83,7 +89,7 @@ class JournalposthendelseServiceTest {
     }
 
     @Test
-    fun `behandleJournalpostHendelse - journalpost er journalfort og ferdig behandlet i db - ignorerer journalposthendelse`() {
+    fun `behandleJournalpostHendelse - journalpost er journalfort, ingen oppgave, ferdig behandlet i db - ignorerer journalposthendelse`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
                 coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(erJournalfort = true)
@@ -120,7 +126,32 @@ class JournalposthendelseServiceTest {
     }
 
     @Test
-    fun `behandleJournalpostHendelse - journalpost er journalfort og ikke ferdig behandlet i db - behandler journalposthendelse`() {
+    fun `behandleJournalpostHendelse - journalpost er ikke journalfort, har oppgave, finnes ikke i db - ignorerer journalposthendelse`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata()
+                coEvery { oppgaveClient.finnOppgave(any(), any(), any()) } returns FinnOppgaveResponse(
+                    antallTreffTotalt = 1,
+                    oppgaver = listOf(OppgaveResponse(oppgaveId)),
+                )
+                val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
+                val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
+
+                journalposthendelseService.behandleJournalpostHendelse(journalpostId)
+
+                journalposthendelseRepo.hent(journalpostId) shouldBe null
+
+                coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any(), any()) }
+                coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `behandleJournalpostHendelse - journalpost er journalfort, ingen oppgave og ikke ferdig behandlet i db - behandler journalposthendelse`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
                 coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(erJournalfort = true)

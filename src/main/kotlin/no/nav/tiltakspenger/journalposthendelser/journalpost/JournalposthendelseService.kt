@@ -38,9 +38,9 @@ class JournalposthendelseService(
 
         val journalposthendelseDB = journalposthendelseRepo.hent(journalpostId)
 
-        // Skal ikke behandle disse ennå
-        if (!Configuration.isNais()) {
-            if (skalBehandleJournalposthendelse(journalposthendelseDB, journalpostMetadata)) {
+        // Skal ikke behandle disse i prod ennå
+        if (!Configuration.isProd()) {
+            if (skalBehandleJournalposthendelse(journalposthendelseDB, journalpostMetadata, correlationId)) {
                 log.info { "Behandler mottatt journalpost $journalpostId" }
                 registrerMetrikker(journalpostMetadata)
                 val journalposthendelseDBUnderArbeid = journalposthendelseDB ?: JournalposthendelseDB(
@@ -69,6 +69,8 @@ class JournalposthendelseService(
                     }
                 }
                 log.info { "Ferdig med å behandle mottatt journalpost $journalpostId" }
+            } else {
+                log.info { "Behandler ikke journalpost $journalpostId som er ferdig behandlet" }
             }
         } else {
             if (!journalpostMetadata.erJournalfort) {
@@ -77,11 +79,14 @@ class JournalposthendelseService(
         }
     }
 
-    private fun skalBehandleJournalposthendelse(
+    private suspend fun skalBehandleJournalposthendelse(
         journalposthendelseDB: JournalposthendelseDB?,
         journalpostMetadata: JournalpostMetadata,
-    ) =
-        !journalpostMetadata.erJournalfort || (journalposthendelseDB != null && !journalposthendelseDB.erFerdigBehandlet())
+        correlationId: CorrelationId,
+    ): Boolean {
+        val finnesApenOppgave = oppgaveService.finnesApenOppgave(journalpostMetadata.journalpostId, correlationId)
+        return (!journalpostMetadata.erJournalfort && !finnesApenOppgave) || (journalposthendelseDB != null && !journalposthendelseDB.erFerdigBehandlet())
+    }
 
     private suspend fun hentIdent(journalpostMetadata: JournalpostMetadata): String? {
         if (journalpostMetadata.manglerBruker()) {

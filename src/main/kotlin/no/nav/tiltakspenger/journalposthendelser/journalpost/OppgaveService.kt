@@ -83,4 +83,24 @@ class OppgaveService(
             log.info { "Har allerede opprettet oppgave for journalpost med is ${journalposthendelseDB.journalpostId}" }
         }
     }
+
+    suspend fun finnesApenOppgave(
+        journalpostId: String,
+        correlationId: CorrelationId,
+    ): Boolean {
+        val oppgaveResponse = oppgaveClient.finnOppgave(
+            journalpostId = journalpostId,
+            oppgaveType = listOf(
+                OppgaveType.BEHANDLE_SAK.kode,
+                OppgaveType.JOURNALFORING.kode,
+                OppgaveType.FORDELING.kode,
+            ),
+            correlationId = correlationId,
+        )
+        if (oppgaveResponse.antallTreffTotalt > 0 && oppgaveResponse.oppgaver.isNotEmpty()) {
+            log.warn { "Åpen oppgave for journalpostId: $journalpostId finnes fra før, correlationId: ${correlationId.value}" }
+            return true
+        }
+        return false
+    }
 }
