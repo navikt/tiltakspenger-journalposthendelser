@@ -32,6 +32,7 @@ class DokarkivClient(
     suspend fun knyttSakTilJournalpost(
         journalpostId: String,
         saksnummer: String,
+        fnr: String,
         correlationId: CorrelationId,
     ) {
         val httpResponse = httpClient.put("$apiPath/$journalpostId") {
@@ -42,6 +43,9 @@ class DokarkivClient(
                 OppdaterJournalpostRequest(
                     sak = Sak(
                         fagsakId = saksnummer,
+                    ),
+                    bruker = OppdaterJournalpostRequest.Bruker(
+                        id = fnr,
                     ),
                 ),
             )

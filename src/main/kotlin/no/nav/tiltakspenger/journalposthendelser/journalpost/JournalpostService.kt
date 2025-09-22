@@ -36,6 +36,7 @@ class JournalpostService(
             dokarkivClient.knyttSakTilJournalpost(
                 journalpostId = journalposthendelseDB.journalpostId,
                 saksnummer = saksnummer,
+                fnr = journalposthendelseDB.fnr,
                 correlationId = correlationId,
             )
             val journalposthendelseDBOppdatertJP = journalposthendelseDB.copy(
