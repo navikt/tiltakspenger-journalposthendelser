@@ -69,7 +69,7 @@ class OppgaveClient(
     ): Int {
         val oppgaveResponse = finnOppgave(
             journalpostId = opprettOppgaveRequest.journalpostId,
-            oppgaveType = opprettOppgaveRequest.oppgavetype,
+            oppgaveType = listOf(opprettOppgaveRequest.oppgavetype),
             correlationId = correlationId,
         )
         if (oppgaveResponse.antallTreffTotalt > 0 && oppgaveResponse.oppgaver.isNotEmpty()) {
@@ -100,12 +100,20 @@ class OppgaveClient(
         }
     }
 
-    private suspend fun finnOppgave(
+    suspend fun finnOppgave(
         journalpostId: String,
-        oppgaveType: String,
+        oppgaveType: List<String>,
         correlationId: CorrelationId,
     ): FinnOppgaveResponse {
-        val httpResponse = httpClient.get("$apiPath?tema=$TEMA_TILTAKSPENGER&oppgavetype=$oppgaveType&journalpostId=$journalpostId&statuskategori=AAPEN") {
+        val httpResponse = httpClient.get(apiPath) {
+            url {
+                parameters.append("tema", TEMA_TILTAKSPENGER)
+                oppgaveType.forEach {
+                    parameters.append("oppgavetype", it)
+                }
+                parameters.append("journalpostId", journalpostId)
+                parameters.append("statuskategori", "AAPEN")
+            }
             header("X-Correlation-ID", correlationId.toString())
             bearerAuth(getToken().token)
             accept(ContentType.Application.Json)

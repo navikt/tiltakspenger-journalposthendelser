@@ -49,7 +49,7 @@ class DokarkivClient(
         if (!httpResponse.status.isSuccess()) {
             val errorResponse = httpResponse.bodyAsText()
             logger.error { "Noe gikk galt ved oppdatering av journalpost med id $journalpostId: ${httpResponse.status.value}, $errorResponse, correlationId ${correlationId.value}" }
-            throw RuntimeException("Oppgave svarte med feilmelding ved oppdatering av journalpost: ${httpResponse.status.value}")
+            throw RuntimeException("Dokarkiv svarte med feilmelding ved oppdatering av journalpost: ${httpResponse.status.value}")
         }
     }
 
@@ -66,7 +66,7 @@ class DokarkivClient(
         if (!httpResponse.status.isSuccess()) {
             val errorResponse = httpResponse.bodyAsText()
             logger.error { "Noe gikk galt ved ferdigstilling av journalpost med id $journalpostId: ${httpResponse.status.value}, $errorResponse, correlationId ${correlationId.value}" }
-            throw RuntimeException("Oppgave svarte med feilmelding ved ferdigstilling av journalpost: ${httpResponse.status.value}")
+            throw RuntimeException("Dokarkiv svarte med feilmelding ved ferdigstilling av journalpost: ${httpResponse.status.value}")
         }
     }
 }
