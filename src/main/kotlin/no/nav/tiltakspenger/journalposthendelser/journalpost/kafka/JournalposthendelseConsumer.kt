@@ -21,7 +21,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 class JournalposthendelseConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "latest") else LocalKafkaConfig(),
+    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
     private val journalposthendelseService: JournalposthendelseService,
 ) : Consumer<String, JournalfoeringHendelseRecord> {
     private val log = KotlinLogging.logger { }
