@@ -5,6 +5,8 @@ import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.infra.db.DataSourceSetup
 import no.nav.tiltakspenger.journalposthendelser.infra.httpClientApache
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalpostService
+import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseService
+import no.nav.tiltakspenger.journalposthendelser.journalpost.OppgaveService
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.dokarkiv.DokarkivClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.pdl.PdlClient
@@ -89,11 +91,25 @@ open class ApplicationContext(log: KLogger) {
     )
 
     val journalpostService = JournalpostService(
+        saksbehandlingApiClient = saksbehandlingApiClient,
+        dokarkivClient = dokarkivClient,
+        journalposthendelseRepo = journalposthendelseRepo,
+    )
+    val oppgaveService = OppgaveService(
+        oppgaveClient = oppgaveClient,
+        journalposthendelseRepo = journalposthendelseRepo,
+    )
+
+    val journalposthendelseService = JournalposthendelseService(
         safJournalpostClient = safJournalpostClient,
+        journalposthendelseRepo = journalposthendelseRepo,
+        pdlClient = pdlClient,
+        journalpostService = journalpostService,
+        oppgaveService = oppgaveService,
     )
 
     val journalposthendelseConsumer = JournalposthendelseConsumer(
         topic = Configuration.topic,
-        journalpostService = journalpostService,
+        journalposthendelseService = journalposthendelseService,
     )
 }

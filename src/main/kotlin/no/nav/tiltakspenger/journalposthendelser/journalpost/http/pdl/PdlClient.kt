@@ -16,6 +16,10 @@ import no.nav.tiltakspenger.journalposthendelser.infra.graphql.GraphQLResponse
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.objectMapper
 
+/**
+ * https://pdl-docs.ansatt.nav.no/ekstern/index.html
+ * Spørringen henter ikke historiske identer, kun gjeldende.
+ */
 class PdlClient(
     private val httpClient: HttpClient,
     private val basePath: String,
