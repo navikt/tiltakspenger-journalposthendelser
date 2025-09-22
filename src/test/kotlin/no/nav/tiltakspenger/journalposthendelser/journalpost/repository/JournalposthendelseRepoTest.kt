@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.journalposthendelser.journalpost.repository
 
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
 import no.nav.tiltakspenger.journalposthendelser.testutils.shouldBeCloseTo
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import org.junit.jupiter.api.Test
@@ -20,7 +21,7 @@ class JournalposthendelseRepoTest {
                 journalpostOppdatertTidspunkt = LocalDateTime.now().minusMinutes(3),
                 journalpostFerdigstiltTidspunkt = LocalDateTime.now().minusMinutes(2),
                 oppgaveId = "900000",
-                oppgavetype = "BEHANDLE_SAK",
+                oppgavetype = OppgaveType.BEHANDLE_SAK,
                 oppgaveOpprettetTidspunkt = LocalDateTime.now().minusMinutes(1),
                 opprettet = LocalDateTime.now().minusMinutes(5),
                 sistEndret = LocalDateTime.now(),
@@ -63,7 +64,7 @@ class JournalposthendelseRepoTest {
 
             val oppdatertJournalposthendelseDB = journalposthendelseDB.copy(
                 oppgaveId = "900000",
-                oppgavetype = "BEHANDLE_SAK",
+                oppgavetype = OppgaveType.BEHANDLE_SAK,
                 oppgaveOpprettetTidspunkt = LocalDateTime.now().minusMinutes(1),
                 sistEndret = LocalDateTime.now(),
             )

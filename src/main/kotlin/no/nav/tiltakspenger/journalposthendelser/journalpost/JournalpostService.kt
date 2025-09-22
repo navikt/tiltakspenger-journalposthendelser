@@ -1,67 +1,74 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.journalposthendelser.infra.MetricRegister
-import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
-import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
-import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.SafJournalpostClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.dokarkiv.DokarkivClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandlingapi.SaksbehandlingApiClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
+import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
+import no.nav.tiltakspenger.libs.common.CorrelationId
+import java.time.LocalDateTime
 
 class JournalpostService(
-    private val safJournalpostClient: SafJournalpostClient,
+    private val saksbehandlingApiClient: SaksbehandlingApiClient,
+    private val dokarkivClient: DokarkivClient,
+    private val journalposthendelseRepo: JournalposthendelseRepo,
 ) {
     val log = KotlinLogging.logger {}
 
-    suspend fun hentJournalpost(journalpostId: Long) {
-        val journalpost = safJournalpostClient.getJournalpostMetadata(journalpostId.toString())
-            ?: throw IllegalStateException(
-                "Unable to find journalpost with id $journalpostId",
+    suspend fun oppdaterEllerFerdigstillJournalpost(
+        journalposthendelseDB: JournalposthendelseDB,
+        correlationId: CorrelationId,
+    ): JournalposthendelseDB {
+        val journalposthendelseDBOppdatertJP = oppdaterJournalpost(journalposthendelseDB, correlationId)
+
+        if (journalposthendelseDB.gjelderPapirsoknad()) {
+            return ferdigstillJournalpost(journalposthendelseDBOppdatertJP, correlationId)
+        }
+        return journalposthendelseDBOppdatertJP
+    }
+
+    private suspend fun oppdaterJournalpost(
+        journalposthendelseDB: JournalposthendelseDB,
+        correlationId: CorrelationId,
+    ): JournalposthendelseDB {
+        if (!journalposthendelseDB.harOppdatertJournalpost() && journalposthendelseDB.kanOppdatereJournalpost()) {
+            val saksnummer = saksbehandlingApiClient.hentEllerOpprettSaksnummer(journalposthendelseDB.fnr!!, correlationId)
+            dokarkivClient.knyttSakTilJournalpost(
+                journalpostId = journalposthendelseDB.journalpostId,
+                saksnummer = saksnummer,
+                correlationId = correlationId,
             )
-
-        log.info {
-            """Journalpost journalpostId=$journalpostId,
-                journalpostErIkkeJournalfort=${journalpost.journalpostErIkkeJournalfort},
-                datoOpprettet=${journalpost.datoOpprettet},
-                antallDokumenter=${journalpost.dokumenter?.size ?: 0},
-                brevkoder=${journalpost.dokumenter?.mapNotNull { it.brevkode }},
-            """.trimIndent()
+            val journalposthendelseDBOppdatertJP = journalposthendelseDB.copy(
+                saksnummer = saksnummer,
+                journalpostOppdatertTidspunkt = LocalDateTime.now(),
+                sistEndret = LocalDateTime.now(),
+            )
+            journalposthendelseRepo.lagre(journalposthendelseDBOppdatertJP)
+            log.info { "Oppdaterte journalpost med id ${journalposthendelseDB.journalpostId}" }
+            return journalposthendelseDBOppdatertJP
         }
+        log.info { "Journalpost med id ${journalposthendelseDB.journalpostId} er allerede oppdatert" }
+        return journalposthendelseDB
+    }
 
-        if (journalpost.journalpostErIkkeJournalfort) {
-            val brevkoder = journalpost.dokumenter?.mapNotNull { it.brevkode } ?: emptyList()
-
-            if (brevkoder.contains(Brevkode.SØKNAD.brevkode)) {
-                prosesserSøknad(journalpost)
-            } else if (brevkoder.contains(Brevkode.KLAGE.brevkode)) {
-                prosesserKlage(journalpost)
-            } else if (brevkoder.contains(Brevkode.MELDEKORT.brevkode)) {
-                prosesserMeldekort(journalpost)
-            } else {
-                log.info { "Annen brevkode mottatt: $brevkoder" }
-                MetricRegister.ANNEN_BREVKODE_MOTTATT.inc()
-            }
+    private suspend fun ferdigstillJournalpost(
+        journalposthendelseDB: JournalposthendelseDB,
+        correlationId: CorrelationId,
+    ): JournalposthendelseDB {
+        if (!journalposthendelseDB.harFerdigstiltJournalpost() && journalposthendelseDB.harOppdatertJournalpost()) {
+            dokarkivClient.ferdigstillJournalpost(
+                journalpostId = journalposthendelseDB.journalpostId,
+                correlationId = correlationId,
+            )
+            val journalposthendelseDBFerdigstiltJP = journalposthendelseDB.copy(
+                journalpostFerdigstiltTidspunkt = LocalDateTime.now(),
+                sistEndret = LocalDateTime.now(),
+            )
+            journalposthendelseRepo.lagre(journalposthendelseDBFerdigstiltJP)
+            log.info { "Ferdigstilte journalpost med id ${journalposthendelseDB.journalpostId}" }
+            return journalposthendelseDBFerdigstiltJP
         }
-    }
-
-    /**
-     * TODO Opprett oppgave i Gosys eller varsle om det i benken i tp-sak?
-     * Kan vi anta at det er papirsøknad hvis den ikke er journalført?
-     */
-    private fun prosesserSøknad(journalpost: JournalpostMetadata) {
-        MetricRegister.SØKNAD_MOTTATT.inc()
-    }
-
-    /**
-     * TODO Opprett oppgave i Gosys?
-     */
-    private fun prosesserKlage(journalpost: JournalpostMetadata) {
-        MetricRegister.KLAGE_MOTTATT.inc()
-    }
-
-    /**
-     * TODO Vi må på sikt ta over håndteringen av journalpost hendelser for meldekort
-     * Er disse papirmeldekort og/eller arena-meldekort som ikke er plukket opp ennå.
-     */
-    private fun prosesserMeldekort(journalpost: JournalpostMetadata) {
-        MetricRegister.MELDEKORT_MOTTATT.inc()
+        log.info { "Journalpost med id ${journalposthendelseDB.journalpostId} er allerede ferdigstilt" }
+        return journalposthendelseDB
     }
 }

@@ -79,26 +79,21 @@ class SafJournalpostClient(
 
         val journalpost = findJournalpostResponse.data.journalpost
 
-        return journalpost.let {
-            JournalpostMetadata(
-                bruker =
-                Bruker(
-                    it.bruker?.id,
-                    it.bruker?.type,
-                ),
-                journalpostErIkkeJournalfort = erIkkeJournalfort(it.journalstatus),
-                datoOpprettet = dateTimeStringTilLocalDateTime(it.datoOpprettet),
-                dokumentInfoIdPdf = journalpost.dokumenter?.first()?.dokumentInfoId,
-                dokumenter = journalpost.dokumenter,
-            )
-        }
+        return JournalpostMetadata(
+            journalpostId = journalpostId,
+            bruker = Bruker(
+                journalpost.bruker?.id,
+                journalpost.bruker?.type,
+            ),
+            erJournalfort = erJournalfort(journalpost.journalstatus),
+            datoOpprettet = dateTimeStringTilLocalDateTime(journalpost.datoOpprettet),
+            brevkode = finnBrevkodeForPdf(journalpost.dokumenter, journalpostId),
+            tittel = journalpost.tittel,
+        )
     }
 
-    private fun erIkkeJournalfort(journalstatus: Journalstatus?): Boolean {
-        return journalstatus?.name?.let {
-            it.equals("MOTTATT", true) || it.equals("FEILREGISTRERT", true)
-        }
-            ?: false
+    private fun erJournalfort(journalstatus: Journalstatus?): Boolean {
+        return journalstatus != Journalstatus.MOTTATT
     }
 
     fun dateTimeStringTilLocalDateTime(dateTime: String?): LocalDateTime? {
@@ -112,6 +107,22 @@ class SafJournalpostClient(
         }
         log.error { "Journalpost mangler datoOpprettet $dateTime" }
         return null
+    }
+
+    fun finnBrevkodeForPdf(
+        dokumentListe: List<Dokument>?,
+        journalpostId: String,
+    ): String? {
+        val dokumenter = dokumentListe?.filter {
+            it.dokumentvarianter.any { variant -> variant.variantformat == Variantformat.ARKIV }
+        }
+
+        if (dokumenter.isNullOrEmpty()) {
+            log.warn { "Journalpost med id $journalpostId mangler PDF" }
+            return null
+        }
+
+        return dokumenter.firstOrNull { it.brevkode != null }?.brevkode
     }
 }
 

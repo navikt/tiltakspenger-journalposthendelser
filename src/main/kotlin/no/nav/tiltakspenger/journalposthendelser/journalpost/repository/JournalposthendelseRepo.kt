@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.journalposthendelser.journalpost.repository
 
 import kotliquery.Row
 import kotliquery.queryOf
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 
 class JournalposthendelseRepo(
@@ -42,7 +43,7 @@ class JournalposthendelseRepo(
                         "journalpost_oppdatert_tidspunkt" to journalposthendelseDB.journalpostOppdatertTidspunkt,
                         "journalpost_ferdigstilt_tidspunkt" to journalposthendelseDB.journalpostFerdigstiltTidspunkt,
                         "oppgave_id" to journalposthendelseDB.oppgaveId,
-                        "oppgavetype" to journalposthendelseDB.oppgavetype,
+                        "oppgavetype" to journalposthendelseDB.oppgavetype?.name,
                         "oppgave_opprettet_tidspunkt" to journalposthendelseDB.oppgaveOpprettetTidspunkt,
                         "opprettet" to journalposthendelseDB.opprettet,
                         "sist_endret" to journalposthendelseDB.sistEndret,
@@ -61,7 +62,7 @@ class JournalposthendelseRepo(
             journalpostOppdatertTidspunkt = row.localDateTimeOrNull("journalpost_oppdatert_tidspunkt"),
             journalpostFerdigstiltTidspunkt = row.localDateTimeOrNull("journalpost_ferdigstilt_tidspunkt"),
             oppgaveId = row.stringOrNull("oppgave_id"),
-            oppgavetype = row.stringOrNull("oppgavetype"),
+            oppgavetype = row.stringOrNull("oppgavetype")?.let { OppgaveType.valueOf(it) },
             oppgaveOpprettetTidspunkt = row.localDateTimeOrNull("oppgave_opprettet_tidspunkt"),
             opprettet = row.localDateTime("opprettet"),
             sistEndret = row.localDateTime("sist_endret"),
