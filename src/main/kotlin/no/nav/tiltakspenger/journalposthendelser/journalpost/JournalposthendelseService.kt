@@ -38,8 +38,8 @@ class JournalposthendelseService(
 
         val journalposthendelseDB = journalposthendelseRepo.hent(journalpostId)
 
-        // Skal ikke behandle disse ennå
-        if (!Configuration.isNais()) {
+        // Skal ikke behandle disse i prod ennå
+        if (!Configuration.isProd()) {
             if (skalBehandleJournalposthendelse(journalposthendelseDB, journalpostMetadata)) {
                 log.info { "Behandler mottatt journalpost $journalpostId" }
                 registrerMetrikker(journalpostMetadata)

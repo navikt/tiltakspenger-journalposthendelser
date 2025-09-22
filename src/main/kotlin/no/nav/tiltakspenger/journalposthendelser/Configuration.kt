@@ -32,6 +32,8 @@ object Configuration {
 
     fun isNais() = applicationProfile() != Profile.LOCAL
 
+    fun isProd() = applicationProfile() == Profile.PROD
+
     fun applicationProfile() =
         when (System.getenv("NAIS_CLUSTER_NAME") ?: System.getProperty("NAIS_CLUSTER_NAME")) {
             "prod-gcp" -> Profile.PROD
