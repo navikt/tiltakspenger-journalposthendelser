@@ -7,7 +7,7 @@ enum class Profile {
 }
 
 private const val APPLICATION_NAME = "tiltakspenger-journalposthendelser"
-const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer"
+const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer-v1"
 
 object Configuration {
     val applicationHttpPort = getEnvVar("PORT", 8084.toString()).toInt()
