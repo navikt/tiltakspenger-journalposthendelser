@@ -81,7 +81,7 @@ class JournalposthendelseServiceTest {
 
                 coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any(), any()) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
                 coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
                 coVerify(exactly = 0) { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) }
             }
@@ -118,7 +118,7 @@ class JournalposthendelseServiceTest {
 
                 coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any(), any()) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
                 coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
                 coVerify(exactly = 0) { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) }
             }
@@ -143,7 +143,7 @@ class JournalposthendelseServiceTest {
 
                 coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any(), any()) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
                 coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
                 coVerify(exactly = 0) { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) }
             }
@@ -180,7 +180,7 @@ class JournalposthendelseServiceTest {
 
                 coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(fnr, journalpostId) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
                 coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
                 coVerify(exactly = 1) { oppgaveClient.opprettOppgaveForPapirsoknad(fnr, journalpostId, any()) }
             }
@@ -211,7 +211,7 @@ class JournalposthendelseServiceTest {
 
                 coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any(), any()) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
                 coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
                 coVerify(exactly = 1) { oppgaveClient.opprettFordelingsoppgave(journalpostId, any()) }
             }
@@ -247,7 +247,7 @@ class JournalposthendelseServiceTest {
 
                 coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(aktorId, journalpostId) }
                 coVerify(exactly = 1) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(fnr, any()) }
-                coVerify(exactly = 1) { dokarkivClient.knyttSakTilJournalpost(journalpostId, saksnummer, fnr, any()) }
+                coVerify(exactly = 1) { dokarkivClient.knyttSakTilJournalpost(journalpostId, saksnummer, fnr, false, any()) }
                 coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
                 coVerify(exactly = 1) { oppgaveClient.opprettJournalforingsoppgave(fnr, journalpostId, tittel, any()) }
             }
@@ -278,7 +278,7 @@ class JournalposthendelseServiceTest {
 
                 coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(fnr, journalpostId) }
                 coVerify(exactly = 1) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(fnr, any()) }
-                coVerify(exactly = 1) { dokarkivClient.knyttSakTilJournalpost(journalpostId, saksnummer, fnr, any()) }
+                coVerify(exactly = 1) { dokarkivClient.knyttSakTilJournalpost(journalpostId, saksnummer, fnr, true, any()) }
                 coVerify(exactly = 1) { dokarkivClient.ferdigstillJournalpost(journalpostId, any()) }
                 coVerify(exactly = 1) { oppgaveClient.opprettOppgaveForPapirsoknad(fnr, journalpostId, any()) }
             }

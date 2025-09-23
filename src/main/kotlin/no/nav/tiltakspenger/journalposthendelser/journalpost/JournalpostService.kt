@@ -37,6 +37,7 @@ class JournalpostService(
                 journalpostId = journalposthendelseDB.journalpostId,
                 saksnummer = saksnummer,
                 fnr = journalposthendelseDB.fnr,
+                gjelderPapirsoknad = journalposthendelseDB.gjelderPapirsoknad(),
                 correlationId = correlationId,
             )
             val journalposthendelseDBOppdatertJP = journalposthendelseDB.copy(

@@ -33,6 +33,7 @@ class DokarkivClient(
         journalpostId: String,
         saksnummer: String,
         fnr: String,
+        gjelderPapirsoknad: Boolean,
         correlationId: CorrelationId,
     ) {
         val httpResponse = httpClient.put("$apiPath/$journalpostId") {
@@ -47,6 +48,13 @@ class DokarkivClient(
                     bruker = OppdaterJournalpostRequest.Bruker(
                         id = fnr,
                     ),
+                    avsenderMottaker = if (gjelderPapirsoknad) {
+                        OppdaterJournalpostRequest.AvsenderMottaker(
+                            id = fnr,
+                        )
+                    } else {
+                        null
+                    },
                 ),
             )
         }

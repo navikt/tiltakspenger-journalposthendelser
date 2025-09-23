@@ -5,9 +5,15 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.TEMA_T
 data class OppdaterJournalpostRequest(
     val sak: Sak,
     val bruker: Bruker,
+    val avsenderMottaker: AvsenderMottaker?,
     val tema: String = TEMA_TILTAKSPENGER,
 ) {
     data class Bruker(
+        val id: String,
+        val idType: String = "FNR",
+    )
+
+    data class AvsenderMottaker(
         val id: String,
         val idType: String = "FNR",
     )
