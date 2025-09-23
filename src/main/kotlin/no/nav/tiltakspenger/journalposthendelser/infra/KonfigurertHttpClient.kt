@@ -1,8 +1,9 @@
 package no.nav.tiltakspenger.journalposthendelser.infra
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.plugins.HttpTimeout
@@ -22,9 +23,11 @@ private fun HttpClient.config(timeout: Long) =
     this.config {
         install(ContentNegotiation) {
             jackson {
-                registerModule(KotlinModule.Builder().build())
                 registerModule(JavaTimeModule())
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                registerKotlinModule()
+                enable(SerializationFeature.INDENT_OUTPUT)
+                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             }
         }
         install(HttpTimeout) {

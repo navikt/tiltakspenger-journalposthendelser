@@ -70,6 +70,8 @@ class JournalpostServiceTest {
                     dokarkivClient.knyttSakTilJournalpost(
                         journalposthendelseDB.journalpostId,
                         saksnummer,
+                        journalposthendelseDB.fnr!!,
+                        true,
                         any(),
                     )
                 }
@@ -118,7 +120,7 @@ class JournalpostServiceTest {
                 journalposthendelseFraDB?.oppgaveId shouldBe null
 
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
                 coVerify(exactly = 1) {
                     dokarkivClient.ferdigstillJournalpost(
                         journalposthendelseDB.journalpostId,
@@ -165,7 +167,7 @@ class JournalpostServiceTest {
                 journalposthendelseFraDB?.oppgaveId shouldBe null
 
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
                 coVerify(exactly = 0) {
                     dokarkivClient.ferdigstillJournalpost(
                         any(),
@@ -218,6 +220,8 @@ class JournalpostServiceTest {
                     dokarkivClient.knyttSakTilJournalpost(
                         journalposthendelseDB.journalpostId,
                         saksnummer,
+                        journalposthendelseDB.fnr!!,
+                        false,
                         any(),
                     )
                 }
@@ -266,7 +270,7 @@ class JournalpostServiceTest {
                 journalposthendelseFraDB?.oppgaveId shouldBe null
 
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
                 coVerify(exactly = 0) {
                     dokarkivClient.ferdigstillJournalpost(
                         any(),
