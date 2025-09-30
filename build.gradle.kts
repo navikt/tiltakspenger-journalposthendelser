@@ -96,7 +96,7 @@ dependencies {
 
     // Test
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation(platform("org.junit:junit-bom:5.13.4"))
+    testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("io.mockk:mockk:${mockkVersion}")
     testImplementation("io.mockk:mockk-dsl-jvm:${mockkVersion}")
