@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
-val felleslibVersion = "0.0.588"
+val felleslibVersion = "0.0.593"
 val ktorVersion = "3.3.1"
 val confluentVersion = "8.0.2"
 val avroVersion = "1.12.0"
