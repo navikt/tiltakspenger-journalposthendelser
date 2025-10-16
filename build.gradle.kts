@@ -6,7 +6,7 @@ val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
 val felleslibVersion = "0.0.596"
 val ktorVersion = "3.3.1"
-val confluentVersion = "8.0.2"
+val confluentVersion = "8.1.0"
 val avroVersion = "1.12.0"
 val caffeineVersion = "3.2.2"
 val mockkVersion = "1.14.5"
