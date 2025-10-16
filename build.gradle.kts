@@ -12,7 +12,7 @@ val caffeineVersion = "3.2.2"
 val mockkVersion = "1.14.5"
 val prometeusVersion = "1.15.4"
 val testContainersVersion = "1.21.3"
-val kotestVersion = "6.0.3"
+val kotestVersion = "6.0.4"
 
 fun isNonStable(version: String): Boolean {
     val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
