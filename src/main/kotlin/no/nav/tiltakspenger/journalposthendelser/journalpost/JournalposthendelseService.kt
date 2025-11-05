@@ -117,5 +117,7 @@ class JournalposthendelseService(
                 MetricRegister.ANNEN_BREVKODE_MOTTATT.inc()
             }
         }
+
+        MetricRegister.JOURNALPOSTHENDELSE_MOTTATT.inc()
     }
 }
