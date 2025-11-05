@@ -33,7 +33,7 @@ open class ApplicationContext(log: KLogger) {
         tokenExchangeUrl = Configuration.tokenExchangeEndpoint,
     )
 
-    val httpClient = httpClientApache(60)
+    val httpClient = httpClientApache()
     val safJournalpostClient = SafJournalpostClient(
         basePath = Configuration.safUrl,
         httpClient = httpClient,

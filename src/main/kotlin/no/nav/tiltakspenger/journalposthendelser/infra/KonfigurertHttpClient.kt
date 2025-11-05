@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
@@ -15,11 +16,17 @@ import io.ktor.serialization.jackson.jackson
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import java.time.Duration
 
-private const val SIXTY_SECONDS = 60L
+fun httpClientApache(
+    connectTimeoutMillis: Long = 2000,
+    requestTimeoutMillis: Long = 5000,
+    socketTimeoutMillis: Long = 2000,
+) = HttpClient(Apache).config(connectTimeoutMillis, requestTimeoutMillis, socketTimeoutMillis)
 
-fun httpClientApache(timeout: Long = SIXTY_SECONDS) = HttpClient(Apache).config(timeout)
-
-private fun HttpClient.config(timeout: Long) =
+private fun HttpClient.config(
+    connectTimeoutMillis: Long,
+    requestTimeoutMillis: Long,
+    socketTimeoutMillis: Long,
+) =
     this.config {
         install(ContentNegotiation) {
             jackson {
@@ -31,9 +38,14 @@ private fun HttpClient.config(timeout: Long) =
             }
         }
         install(HttpTimeout) {
-            connectTimeoutMillis = Duration.ofSeconds(timeout).toMillis()
-            requestTimeoutMillis = Duration.ofSeconds(timeout).toMillis()
-            socketTimeoutMillis = Duration.ofSeconds(timeout).toMillis()
+            this.connectTimeoutMillis = Duration.ofSeconds(connectTimeoutMillis).toMillis()
+            this.requestTimeoutMillis = Duration.ofSeconds(requestTimeoutMillis).toMillis()
+            this.socketTimeoutMillis = Duration.ofSeconds(socketTimeoutMillis).toMillis()
+        }
+        install(HttpRequestRetry) {
+            maxRetries = 3
+            retryOnServerErrors(maxRetries)
+            exponentialDelay()
         }
         install(Logging) {
             logger =
