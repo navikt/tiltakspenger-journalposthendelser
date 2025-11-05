@@ -5,7 +5,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.KAFKA_CONSUMER_GROUP_ID
-import no.nav.tiltakspenger.journalposthendelser.infra.MetricRegister
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseService
 import no.nav.tiltakspenger.libs.kafka.Consumer
 import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
@@ -38,17 +37,10 @@ class JournalposthendelseConsumer(
     )
 
     override suspend fun consume(key: String, value: JournalfoeringHendelseRecord) {
-        if ((value.hendelsesType == "JournalpostMottatt" || value.hendelsesType == "TemaEndret") && value.temaNytt == "IND") {
-            log.info {
-                """
-                    Journalposthendelse for tiltakspenger (${value.temaNytt}), 
-                    journalpostId=${value.journalpostId}, 
-                    hendelsesType=${value.hendelsesType}, 
-                    mottakskanal=${value.mottaksKanal}
-                """.trimIndent()
-            }
-            MetricRegister.JOURNALPOSTHENDELSE_MOTTATT.inc()
-            journalposthendelseService.behandleJournalpostHendelse(value.journalpostId.toString())
+        val hendelse = value.toJournalføringshendelseFraKafka()
+        if (hendelse.skalBehandles) {
+            log.info { "Mottok journalposthendelse som skal behandles. $hendelse" }
+            journalposthendelseService.behandleJournalpostHendelse(hendelse)
         }
     }
 

@@ -7,6 +7,7 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.pdl.PdlClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.SafJournalpostClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.JournalføringshendelseFraKafka
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -21,9 +22,10 @@ class JournalposthendelseService(
 ) {
     val log = KotlinLogging.logger {}
 
-    suspend fun behandleJournalpostHendelse(journalpostId: String) {
+    suspend fun behandleJournalpostHendelse(hendelse: JournalføringshendelseFraKafka) {
+        val journalpostId = hendelse.journalpostId
         val correlationId = CorrelationId.generate()
-        val journalpostMetadata = safJournalpostClient.getJournalpostMetadata(journalpostId.toString())
+        val journalpostMetadata = safJournalpostClient.getJournalpostMetadata(journalpostId)
             ?: throw IllegalStateException(
                 "Unable to find journalpost with id $journalpostId",
             )
@@ -36,13 +38,17 @@ class JournalposthendelseService(
             """.trimIndent()
         }
 
-        val journalposthendelseDB = journalposthendelseRepo.hent(journalpostId)
-
         // Skal ikke behandle disse i prod ennå
         if (!Configuration.isProd()) {
-            if (skalBehandleJournalposthendelse(journalposthendelseDB, journalpostMetadata, correlationId)) {
+            val journalposthendelseDB = journalposthendelseRepo.hent(journalpostId)
+            if (skalBehandleJournalposthendelse(
+                    journalposthendelseDB = journalposthendelseDB,
+                    hendelse = hendelse,
+                    correlationId = correlationId,
+                )
+            ) {
                 log.info { "Behandler mottatt journalpost $journalpostId" }
-                registrerMetrikker(journalpostMetadata)
+                registrerMetrikker(journalpostMetadata.brevkode)
                 val journalposthendelseDBUnderArbeid = journalposthendelseDB ?: JournalposthendelseDB(
                     journalpostId = journalpostId,
                     brevkode = journalpostMetadata.brevkode,
@@ -73,19 +79,19 @@ class JournalposthendelseService(
                 log.info { "Behandler ikke journalpost $journalpostId som er ferdig behandlet" }
             }
         } else {
-            if (!journalpostMetadata.erJournalfort) {
-                registrerMetrikker(journalpostMetadata)
+            if (!hendelse.erJournalført) {
+                registrerMetrikker(journalpostMetadata.brevkode)
             }
         }
     }
 
     private suspend fun skalBehandleJournalposthendelse(
         journalposthendelseDB: JournalposthendelseDB?,
-        journalpostMetadata: JournalpostMetadata,
+        hendelse: JournalføringshendelseFraKafka,
         correlationId: CorrelationId,
     ): Boolean {
-        val finnesApenOppgave = oppgaveService.finnesApenOppgave(journalpostMetadata.journalpostId, correlationId)
-        return (!journalpostMetadata.erJournalfort && !finnesApenOppgave) || (journalposthendelseDB != null && !journalposthendelseDB.erFerdigBehandlet())
+        val finnesApenOppgave = oppgaveService.finnesApenOppgave(hendelse.journalpostId, correlationId)
+        return (!hendelse.erJournalført && !finnesApenOppgave) || (journalposthendelseDB != null && !journalposthendelseDB.erFerdigBehandlet())
     }
 
     private suspend fun hentIdent(journalpostMetadata: JournalpostMetadata): String? {
@@ -101,16 +107,15 @@ class JournalposthendelseService(
         }
     }
 
-    private fun registrerMetrikker(journalpost: JournalpostMetadata) {
-        if (journalpost.brevkode == Brevkode.SØKNAD.brevkode) {
-            MetricRegister.SØKNAD_MOTTATT.inc()
-        } else if (journalpost.brevkode == Brevkode.KLAGE.brevkode) {
-            MetricRegister.KLAGE_MOTTATT.inc()
-        } else if (journalpost.brevkode == Brevkode.MELDEKORT.brevkode) {
-            MetricRegister.MELDEKORT_MOTTATT.inc()
-        } else {
-            log.info { "Annen brevkode mottatt: ${journalpost.brevkode}" }
-            MetricRegister.ANNEN_BREVKODE_MOTTATT.inc()
+    private fun registrerMetrikker(brevkode: String?) {
+        when (brevkode) {
+            Brevkode.SØKNAD.name -> MetricRegister.SØKNAD_MOTTATT.inc()
+            Brevkode.KLAGE.name -> MetricRegister.KLAGE_MOTTATT.inc()
+            Brevkode.MELDEKORT.name -> MetricRegister.MELDEKORT_MOTTATT.inc()
+            else -> {
+                log.info { "Annen brevkode mottatt: $brevkode" }
+                MetricRegister.ANNEN_BREVKODE_MOTTATT.inc()
+            }
         }
     }
 }

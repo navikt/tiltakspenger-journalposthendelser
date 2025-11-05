@@ -19,6 +19,7 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.Bruker
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.BrukerIdType
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.SafJournalpostClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandlingapi.SaksbehandlingApiClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.JournalføringshendelseFraKafka
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.journalposthendelser.testutils.shouldBeCloseTo
@@ -39,6 +40,21 @@ class JournalposthendelseServiceTest {
     private val saksnummer = "34567"
     private val oppgaveId = 9876
     private val tittel = "Klage på tiltakspenger"
+
+    fun journalføringshendelseFraKafka(
+        journalpostStatus: String = "MOTTATT",
+    ) = JournalføringshendelseFraKafka(
+        hendelsesId = "hendelseId",
+        versjon = 1,
+        hendelsesType = "JournalpostMottatt",
+        journalpostId = journalpostId,
+        journalpostStatus = journalpostStatus,
+        temaGammelt = null,
+        temaNytt = "IND",
+        mottaksKanal = "NAV_NO",
+        kanalReferanseId = null,
+        behandlingstema = null,
+    )
 
     @BeforeEach
     fun clearMockData() {
@@ -62,7 +78,11 @@ class JournalposthendelseServiceTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
-                assertThrows<IllegalStateException> { journalposthendelseService.behandleJournalpostHendelse(journalpostId) }
+                assertThrows<IllegalStateException> {
+                    journalposthendelseService.behandleJournalpostHendelse(
+                        journalføringshendelseFraKafka(),
+                    )
+                }
             }
         }
     }
@@ -71,11 +91,17 @@ class JournalposthendelseServiceTest {
     fun `behandleJournalpostHendelse - journalpost er journalfort, ingen oppgave, finnes ikke i db - ignorerer journalposthendelse`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
-                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(erJournalfort = true)
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(
+                    erJournalfort = true,
+                )
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
-                journalposthendelseService.behandleJournalpostHendelse(journalpostId)
+                journalposthendelseService.behandleJournalpostHendelse(
+                    journalføringshendelseFraKafka(
+                        journalpostStatus = "JOURNALFOERT",
+                    ),
+                )
 
                 journalposthendelseRepo.hent(journalpostId) shouldBe null
 
@@ -92,7 +118,9 @@ class JournalposthendelseServiceTest {
     fun `behandleJournalpostHendelse - journalpost er journalfort, ingen oppgave, ferdig behandlet i db - ignorerer journalposthendelse`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
-                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(erJournalfort = true)
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(
+                    erJournalfort = true,
+                )
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
                 val journalposthendelseDB = JournalposthendelseDB(
@@ -110,7 +138,11 @@ class JournalposthendelseServiceTest {
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
-                journalposthendelseService.behandleJournalpostHendelse(journalpostId)
+                journalposthendelseService.behandleJournalpostHendelse(
+                    journalføringshendelseFraKafka(
+                        journalpostStatus = "JOURNALFOERT",
+                    ),
+                )
 
                 val journalposthendelseFraDB = journalposthendelseRepo.hent(journalpostId)
                 journalposthendelseFraDB shouldNotBe null
@@ -137,7 +169,7 @@ class JournalposthendelseServiceTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
-                journalposthendelseService.behandleJournalpostHendelse(journalpostId)
+                journalposthendelseService.behandleJournalpostHendelse(journalføringshendelseFraKafka())
 
                 journalposthendelseRepo.hent(journalpostId) shouldBe null
 
@@ -154,7 +186,9 @@ class JournalposthendelseServiceTest {
     fun `behandleJournalpostHendelse - journalpost er journalfort, ingen oppgave og ikke ferdig behandlet i db - behandler journalposthendelse`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
-                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(erJournalfort = true)
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(
+                    erJournalfort = true,
+                )
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
                 val journalposthendelseDB = JournalposthendelseDB(
@@ -169,7 +203,7 @@ class JournalposthendelseServiceTest {
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
-                journalposthendelseService.behandleJournalpostHendelse(journalpostId)
+                journalposthendelseService.behandleJournalpostHendelse(journalføringshendelseFraKafka())
 
                 val journalposthendelseFraDB = journalposthendelseRepo.hent(journalpostId)
                 journalposthendelseFraDB shouldNotBe null
@@ -195,7 +229,7 @@ class JournalposthendelseServiceTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
-                journalposthendelseService.behandleJournalpostHendelse(journalpostId)
+                journalposthendelseService.behandleJournalpostHendelse(journalføringshendelseFraKafka())
 
                 val journalposthendelseFraDB = journalposthendelseRepo.hent(journalpostId)
                 journalposthendelseFraDB shouldNotBe null
@@ -231,7 +265,7 @@ class JournalposthendelseServiceTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
-                journalposthendelseService.behandleJournalpostHendelse(journalpostId)
+                journalposthendelseService.behandleJournalpostHendelse(journalføringshendelseFraKafka())
 
                 val journalposthendelseFraDB = journalposthendelseRepo.hent(journalpostId)
                 journalposthendelseFraDB shouldNotBe null
@@ -247,7 +281,15 @@ class JournalposthendelseServiceTest {
 
                 coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(aktorId, journalpostId) }
                 coVerify(exactly = 1) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(fnr, any()) }
-                coVerify(exactly = 1) { dokarkivClient.knyttSakTilJournalpost(journalpostId, saksnummer, fnr, false, any()) }
+                coVerify(exactly = 1) {
+                    dokarkivClient.knyttSakTilJournalpost(
+                        journalpostId,
+                        saksnummer,
+                        fnr,
+                        false,
+                        any(),
+                    )
+                }
                 coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
                 coVerify(exactly = 1) { oppgaveClient.opprettJournalforingsoppgave(fnr, journalpostId, tittel, any()) }
             }
@@ -262,7 +304,7 @@ class JournalposthendelseServiceTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
-                journalposthendelseService.behandleJournalpostHendelse(journalpostId)
+                journalposthendelseService.behandleJournalpostHendelse(journalføringshendelseFraKafka())
 
                 val journalposthendelseFraDB = journalposthendelseRepo.hent(journalpostId)
                 journalposthendelseFraDB shouldNotBe null
@@ -278,7 +320,15 @@ class JournalposthendelseServiceTest {
 
                 coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(fnr, journalpostId) }
                 coVerify(exactly = 1) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(fnr, any()) }
-                coVerify(exactly = 1) { dokarkivClient.knyttSakTilJournalpost(journalpostId, saksnummer, fnr, true, any()) }
+                coVerify(exactly = 1) {
+                    dokarkivClient.knyttSakTilJournalpost(
+                        journalpostId,
+                        saksnummer,
+                        fnr,
+                        true,
+                        any(),
+                    )
+                }
                 coVerify(exactly = 1) { dokarkivClient.ferdigstillJournalpost(journalpostId, any()) }
                 coVerify(exactly = 1) { oppgaveClient.opprettOppgaveForPapirsoknad(fnr, journalpostId, any()) }
             }
@@ -304,18 +354,19 @@ class JournalposthendelseServiceTest {
             tittel = tittel,
         )
 
-    private fun getJournalposthendelseService(journalposthendelseRepo: JournalposthendelseRepo) = JournalposthendelseService(
-        safJournalpostClient = safJournalpostClient,
-        journalposthendelseRepo = journalposthendelseRepo,
-        pdlClient = pdlClient,
-        journalpostService = JournalpostService(
-            saksbehandlingApiClient = saksbehandlingApiClient,
-            dokarkivClient = dokarkivClient,
+    private fun getJournalposthendelseService(journalposthendelseRepo: JournalposthendelseRepo) =
+        JournalposthendelseService(
+            safJournalpostClient = safJournalpostClient,
             journalposthendelseRepo = journalposthendelseRepo,
-        ),
-        oppgaveService = OppgaveService(
-            oppgaveClient = oppgaveClient,
-            journalposthendelseRepo = journalposthendelseRepo,
-        ),
-    )
+            pdlClient = pdlClient,
+            journalpostService = JournalpostService(
+                saksbehandlingApiClient = saksbehandlingApiClient,
+                dokarkivClient = dokarkivClient,
+                journalposthendelseRepo = journalposthendelseRepo,
+            ),
+            oppgaveService = OppgaveService(
+                oppgaveClient = oppgaveClient,
+                journalposthendelseRepo = journalposthendelseRepo,
+            ),
+        )
 }

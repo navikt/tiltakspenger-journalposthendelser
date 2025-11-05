@@ -22,6 +22,21 @@ class JournalposthendelseConsumerTest {
         journalposthendelseService = journalposthendelseService,
     )
 
+    fun journalføringshendelseFraKafka(
+        hendelsesType: String = "TemaEndret",
+    ) = JournalføringshendelseFraKafka(
+        hendelsesId = "hendelseId",
+        versjon = 1,
+        hendelsesType = hendelsesType,
+        journalpostId = "12345",
+        journalpostStatus = "MOTTATT",
+        temaGammelt = null,
+        temaNytt = "IND",
+        mottaksKanal = "NAV_NO",
+        kanalReferanseId = null,
+        behandlingstema = null,
+    )
+
     @BeforeEach
     fun setup() {
         clearAllMocks()
@@ -38,7 +53,7 @@ class JournalposthendelseConsumerTest {
 
         consumer.consume("key", hendelseRecord)
 
-        coVerify { journalposthendelseService.behandleJournalpostHendelse("12345") }
+        coVerify { journalposthendelseService.behandleJournalpostHendelse(journalføringshendelseFraKafka(hendelsesType = "JournalpostMottatt")) }
     }
 
     @Test
@@ -52,7 +67,7 @@ class JournalposthendelseConsumerTest {
 
         consumer.consume("key", hendelseRecord)
 
-        coVerify { journalposthendelseService.behandleJournalpostHendelse("12345") }
+        coVerify { journalposthendelseService.behandleJournalpostHendelse(journalføringshendelseFraKafka(hendelsesType = "TemaEndret")) }
     }
 
     @ParameterizedTest
@@ -90,6 +105,13 @@ class JournalposthendelseConsumerTest {
         every { hendelseRecord.temaNytt } returns temaNytt
         every { hendelseRecord.journalpostId } returns (12345L)
         every { hendelseRecord.mottaksKanal } returns ("NAV_NO")
+        every { hendelseRecord.hendelsesId } returns ("hendelseId")
+        every { hendelseRecord.versjon } returns (1)
+        every { hendelseRecord.temaGammelt } returns (null)
+        every { hendelseRecord.kanalReferanseId } returns (null)
+        every { hendelseRecord.behandlingstema } returns (null)
+        every { hendelseRecord.journalpostStatus } returns ("MOTTATT")
+
         return hendelseRecord
     }
 }
