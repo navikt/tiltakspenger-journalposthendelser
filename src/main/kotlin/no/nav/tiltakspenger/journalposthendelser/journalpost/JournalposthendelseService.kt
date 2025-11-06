@@ -42,8 +42,9 @@ class JournalposthendelseService(
         if (!Configuration.isProd()) {
             val journalposthendelseDB = journalposthendelseRepo.hent(journalpostId)
             if (skalBehandleJournalposthendelse(
+                    journalpostId = journalpostId,
+                    erJournalført = journalpostMetadata.erJournalfort,
                     journalposthendelseDB = journalposthendelseDB,
-                    hendelse = hendelse,
                     correlationId = correlationId,
                 )
             ) {
@@ -86,12 +87,13 @@ class JournalposthendelseService(
     }
 
     private suspend fun skalBehandleJournalposthendelse(
+        journalpostId: String,
+        erJournalført: Boolean,
         journalposthendelseDB: JournalposthendelseDB?,
-        hendelse: JournalføringshendelseFraKafka,
         correlationId: CorrelationId,
     ): Boolean {
-        val finnesApenOppgave = oppgaveService.finnesApenOppgave(hendelse.journalpostId, correlationId)
-        return (!hendelse.erJournalført && !finnesApenOppgave) || (journalposthendelseDB != null && !journalposthendelseDB.erFerdigBehandlet())
+        val finnesApenOppgave = oppgaveService.finnesApenOppgave(journalpostId, correlationId)
+        return (!erJournalført && !finnesApenOppgave) || (journalposthendelseDB != null && !journalposthendelseDB.erFerdigBehandlet())
     }
 
     private suspend fun hentIdent(journalpostMetadata: JournalpostMetadata): String? {
