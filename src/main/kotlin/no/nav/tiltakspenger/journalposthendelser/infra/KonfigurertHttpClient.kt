@@ -17,15 +17,15 @@ import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import java.time.Duration
 
 fun httpClientApache(
-    connectTimeoutMillis: Long = 2000,
-    requestTimeoutMillis: Long = 5000,
-    socketTimeoutMillis: Long = 2000,
-) = HttpClient(Apache).config(connectTimeoutMillis, requestTimeoutMillis, socketTimeoutMillis)
+    connectTimeoutSeconds: Long = 2,
+    requestTimeoutSeconds: Long = 5,
+    socketTimeoutSeconds: Long = 2,
+) = HttpClient(Apache).config(connectTimeoutSeconds, requestTimeoutSeconds, socketTimeoutSeconds)
 
 private fun HttpClient.config(
-    connectTimeoutMillis: Long,
-    requestTimeoutMillis: Long,
-    socketTimeoutMillis: Long,
+    connectTimeoutSeconds: Long,
+    requestTimeoutSeconds: Long,
+    socketTimeoutSeconds: Long,
 ) =
     this.config {
         install(ContentNegotiation) {
@@ -38,9 +38,9 @@ private fun HttpClient.config(
             }
         }
         install(HttpTimeout) {
-            this.connectTimeoutMillis = Duration.ofSeconds(connectTimeoutMillis).toMillis()
-            this.requestTimeoutMillis = Duration.ofSeconds(requestTimeoutMillis).toMillis()
-            this.socketTimeoutMillis = Duration.ofSeconds(socketTimeoutMillis).toMillis()
+            this.connectTimeoutMillis = Duration.ofSeconds(connectTimeoutSeconds).toMillis()
+            this.requestTimeoutMillis = Duration.ofSeconds(requestTimeoutSeconds).toMillis()
+            this.socketTimeoutMillis = Duration.ofSeconds(socketTimeoutSeconds).toMillis()
         }
         install(HttpRequestRetry) {
             maxRetries = 3
