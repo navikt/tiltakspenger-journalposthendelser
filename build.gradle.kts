@@ -10,7 +10,7 @@ val confluentVersion = "8.1.0"
 val avroVersion = "1.12.1"
 val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.6"
-val prometeusVersion = "1.15.5"
+val prometeusVersion = "1.16.0"
 val testContainersVersion = "1.21.3"
 val kotestVersion = "6.0.4"
 
