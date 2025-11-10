@@ -7,6 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.tiltakspenger.libs.kafka.ConsumerStatus
+import org.apache.kafka.clients.consumer.CommitFailedException
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -66,6 +67,10 @@ class ManagedKafkaConsumer<K, V>(
         } catch (e: WakeupException) {
             log.info { "Consumer for $topic is exiting" }
             stop()
+        } catch (e: CommitFailedException) {
+            log.error(e) { "Consumer for $topic cannot commit offsets, restarting consumer" }
+            stop()
+            start()
         } catch (t: Throwable) {
             log.error(t) { "Something went wrong with consumer for topic $topic" }
             throw t
