@@ -74,7 +74,6 @@ class ManagedKafkaConsumer<K, V>(
             } catch (e: Exception) {
                 log.warn { "Cannot unsubscribe" }
             }
-            stop()
             consumer.subscribe(listOf(topic), rebalanceListener(consumer))
         } catch (t: Throwable) {
             log.error(t) { "Something went wrong with consumer for topic $topic" }
