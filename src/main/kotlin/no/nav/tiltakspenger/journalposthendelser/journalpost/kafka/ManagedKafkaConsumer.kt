@@ -74,13 +74,13 @@ class ManagedKafkaConsumer<K, V>(
 
     private suspend fun poll(consumer: KafkaConsumer<K, V>) {
         while (running) {
-            if (status.isFailure) {
+            /*if (status.isFailure) {
                 log.info {
                     "Consumer status for topic $topic is failure, " +
                         "delaying ${status.backoffDuration}ms before retrying"
                 }
                 delay(status.backoffDuration)
-            }
+            }*/
 
             try {
                 val records = consumer.poll(Duration.ofMillis(1000))
