@@ -59,9 +59,8 @@ class ManagedKafkaConsumer<K, V>(
 
     private suspend fun subscribe(consumer: KafkaConsumer<K, V>) {
         try {
-            consumer.subscribe(listOf(topic), rebalanceListener(consumer))
-
             while (running) {
+                consumer.subscribe(listOf(topic), rebalanceListener(consumer))
                 poll(consumer)
             }
         } catch (e: WakeupException) {
@@ -78,37 +77,39 @@ class ManagedKafkaConsumer<K, V>(
     }
 
     private suspend fun poll(consumer: KafkaConsumer<K, V>) {
-        if (status.isFailure) {
-            log.info {
-                "Consumer status for topic $topic is failure, " +
-                    "delaying ${status.backoffDuration}ms before retrying"
-            }
-            delay(status.backoffDuration)
-        }
-
-        try {
-            val records = consumer.poll(Duration.ofMillis(1000))
-
-            seekToEarliestOffsets(records, consumer)
-
-            if (!records.isEmpty) {
-                log.debug { "Consumer for $topic polled ${records.count()} records." }
+        while (running) {
+            if (status.isFailure) {
+                log.info {
+                    "Consumer status for topic $topic is failure, " +
+                        "delaying ${status.backoffDuration}ms before retrying"
+                }
+                delay(status.backoffDuration)
             }
 
-            records.forEach { record ->
-                process(record)
+            try {
+                val records = consumer.poll(Duration.ofMillis(1000))
 
-                val partition = TopicPartition(record.topic(), record.partition())
-                val offset = OffsetAndMetadata(record.offset() + 1)
+                seekToEarliestOffsets(records, consumer)
 
-                offsetsToCommit[partition] = offset
-                status.success()
+                if (!records.isEmpty) {
+                    log.debug { "Consumer for $topic polled ${records.count()} records." }
+                }
+
+                records.forEach { record ->
+                    process(record)
+
+                    val partition = TopicPartition(record.topic(), record.partition())
+                    val offset = OffsetAndMetadata(record.offset() + 1)
+
+                    offsetsToCommit[partition] = offset
+                    status.success()
+                }
+            } catch (t: Throwable) {
+                log.error(t) { t.message }
+                status.failure()
+            } finally {
+                commitOffsets(consumer)
             }
-        } catch (t: Throwable) {
-            log.error(t) { t.message }
-            status.failure()
-        } finally {
-            commitOffsets(consumer)
         }
     }
 
