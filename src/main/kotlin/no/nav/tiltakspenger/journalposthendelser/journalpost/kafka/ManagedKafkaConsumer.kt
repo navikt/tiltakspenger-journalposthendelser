@@ -68,13 +68,9 @@ class ManagedKafkaConsumer<K, V>(
             log.info { "Consumer for $topic is exiting" }
             stop()
         } catch (e: CommitFailedException) {
-            log.error(e) { "Consumer for $topic cannot commit offsets, restarting consumer" }
-            try {
-                consumer.unsubscribe()
-            } catch (e: Exception) {
-                log.warn { "Cannot unsubscribe" }
-            }
-            consumer.subscribe(listOf(topic), rebalanceListener(consumer))
+            log.error(e) { "Consumer for $topic cannot commit offsets. Unsubscribing and then retrying" }
+            consumer.unsubscribe()
+            delay(10_000)
         } catch (t: Throwable) {
             log.error(t) { "Something went wrong with consumer for topic $topic" }
             throw t
@@ -112,11 +108,7 @@ class ManagedKafkaConsumer<K, V>(
             log.error(t) { t.message }
             status.failure()
         } finally {
-            try {
-                commitOffsets(consumer)
-            } catch (e: CommitFailedException) {
-                log.error(e) { "Consumer for $topic cannot commit offsets" }
-            }
+            commitOffsets(consumer)
         }
     }
 
@@ -181,11 +173,7 @@ class ManagedKafkaConsumer<K, V>(
     private fun rebalanceListener(consumer: KafkaConsumer<K, V>) = object : ConsumerRebalanceListener {
         override fun onPartitionsRevoked(partitions: MutableCollection<TopicPartition>) {
             log.info { "Partitions revoked $partitions, committing offsets" }
-            try {
-                commitOffsets(consumer)
-            } catch (e: CommitFailedException) {
-                log.error(e) { "Consumer for $topic cannot commit offsets during rebalancing" }
-            }
+            commitOffsets(consumer)
         }
 
         override fun onPartitionsAssigned(partitions: MutableCollection<TopicPartition>) {
