@@ -59,7 +59,7 @@ class ManagedKafkaConsumer<K, V>(
     private suspend fun subscribe(consumer: KafkaConsumer<K, V>) {
         while (running) {
             try {
-                consumer.subscribe(listOf(topic), rebalanceListener(consumer))
+                consumer.subscribe(listOf(topic))
                 poll(consumer)
             } catch (e: WakeupException) {
                 log.info { "Consumer for $topic is exiting" }
@@ -74,18 +74,18 @@ class ManagedKafkaConsumer<K, V>(
 
     private suspend fun poll(consumer: KafkaConsumer<K, V>) {
         while (running) {
-            /*if (status.isFailure) {
+            if (status.isFailure) {
                 log.info {
                     "Consumer status for topic $topic is failure, " +
                         "delaying ${status.backoffDuration}ms before retrying"
                 }
                 delay(status.backoffDuration)
-            }*/
+            }
 
             try {
                 val records = consumer.poll(Duration.ofMillis(1000))
 
-                seekToEarliestOffsets(records, consumer)
+                // seekToEarliestOffsets(records, consumer)
 
                 if (!records.isEmpty) {
                     log.debug { "Consumer for $topic polled ${records.count()} records." }
@@ -94,17 +94,17 @@ class ManagedKafkaConsumer<K, V>(
                 records.forEach { record ->
                     process(record)
 
-                    val partition = TopicPartition(record.topic(), record.partition())
-                    val offset = OffsetAndMetadata(record.offset() + 1)
+                    // val partition = TopicPartition(record.topic(), record.partition())
+                    // val offset = OffsetAndMetadata(record.offset() + 1)
 
-                    offsetsToCommit[partition] = offset
+                    // offsetsToCommit[partition] = offset
                     status.success()
+                    consumer.commitSync()
                 }
             } catch (t: Throwable) {
                 log.error(t) { t.message }
                 status.failure()
-            } finally {
-                commitOffsets(consumer)
+                throw t
             }
         }
     }
