@@ -69,8 +69,13 @@ class ManagedKafkaConsumer<K, V>(
             stop()
         } catch (e: CommitFailedException) {
             log.error(e) { "Consumer for $topic cannot commit offsets, restarting consumer" }
+            try {
+                consumer.unsubscribe()
+            } catch (e: Exception) {
+                log.warn { "Cannot unsubscribe" }
+            }
             stop()
-            start()
+            consumer.subscribe(listOf(topic), rebalanceListener(consumer))
         } catch (t: Throwable) {
             log.error(t) { "Something went wrong with consumer for topic $topic" }
             throw t
