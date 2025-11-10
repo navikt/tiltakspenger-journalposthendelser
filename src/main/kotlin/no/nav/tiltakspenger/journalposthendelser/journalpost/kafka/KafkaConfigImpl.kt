@@ -9,7 +9,7 @@ import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.StringSerializer
 
 const val MAX_POLL_INTERVAL_MS = 10_000
-const val MAX_POLL_RECORDS = 1
+const val MAX_POLL_RECORDS = 10
 
 class KafkaConfigImpl(
     private val autoOffsetReset: String = "earliest",
