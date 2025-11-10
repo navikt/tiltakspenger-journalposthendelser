@@ -108,7 +108,11 @@ class ManagedKafkaConsumer<K, V>(
             log.error(t) { t.message }
             status.failure()
         } finally {
-            commitOffsets(consumer)
+            try {
+                commitOffsets(consumer)
+            } catch (e: CommitFailedException) {
+                log.error(e) { "Consumer for $topic cannot commit offsets" }
+            }
         }
     }
 
