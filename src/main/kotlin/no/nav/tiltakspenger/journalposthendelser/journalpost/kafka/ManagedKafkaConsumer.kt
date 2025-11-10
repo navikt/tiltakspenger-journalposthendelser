@@ -7,12 +7,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.tiltakspenger.libs.kafka.ConsumerStatus
-import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.apache.kafka.clients.consumer.ConsumerRecords
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.clients.consumer.OffsetAndMetadata
-import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.WakeupException
 import java.time.Duration
 
@@ -25,7 +21,6 @@ class ManagedKafkaConsumer<K, V>(
     private val log = KotlinLogging.logger {}
     private val job = Job()
     private val scope = CoroutineScope(Dispatchers.IO + job)
-    private val offsetsToCommit = mutableMapOf<TopicPartition, OffsetAndMetadata>()
 
     private var running = false
 
@@ -84,20 +79,12 @@ class ManagedKafkaConsumer<K, V>(
 
             try {
                 val records = consumer.poll(Duration.ofMillis(1000))
-
-                // seekToEarliestOffsets(records, consumer)
-
                 if (!records.isEmpty) {
                     log.debug { "Consumer for $topic polled ${records.count()} records." }
                 }
 
                 records.forEach { record ->
                     process(record)
-
-                    // val partition = TopicPartition(record.topic(), record.partition())
-                    // val offset = OffsetAndMetadata(record.offset() + 1)
-
-                    // offsetsToCommit[partition] = offset
                     status.success()
                     consumer.commitSync()
                 }
@@ -107,33 +94,6 @@ class ManagedKafkaConsumer<K, V>(
                 throw t
             }
         }
-    }
-
-    private fun commitOffsets(consumer: KafkaConsumer<K, V>) {
-        if (offsetsToCommit.isNotEmpty()) {
-            offsetsToCommit.forEach { (partition, offset) -> consumer.seek(partition, offset) }
-            consumer.commitSync(offsetsToCommit)
-
-            log.debug { "Committed offsets $offsetsToCommit" }
-            offsetsToCommit.clear()
-        }
-    }
-
-    private fun seekToEarliestOffsets(records: ConsumerRecords<K, V>, consumer: KafkaConsumer<K, V>) {
-        val offsetMap = mutableMapOf<TopicPartition, OffsetAndMetadata>()
-
-        records.forEach { record ->
-            val topicPartition = TopicPartition(record.topic(), record.partition())
-            val offsetAndMetadata = OffsetAndMetadata(record.offset())
-
-            val storedOffset = offsetMap[topicPartition]
-
-            if (storedOffset == null || offsetAndMetadata.offset() < storedOffset.offset()) {
-                offsetMap[topicPartition] = offsetAndMetadata
-            }
-        }
-
-        offsetMap.forEach { consumer.seek(it.key, it.value) }
     }
 
     private suspend fun process(record: ConsumerRecord<K, V>) {
@@ -166,19 +126,4 @@ class ManagedKafkaConsumer<K, V>(
         msg: String,
         cause: Throwable?,
     ) : RuntimeException(msg, cause)
-
-    private fun rebalanceListener(consumer: KafkaConsumer<K, V>) = object : ConsumerRebalanceListener {
-        override fun onPartitionsRevoked(partitions: MutableCollection<TopicPartition>) {
-            log.info { "Partitions revoked $partitions, committing offsets" }
-            try {
-                commitOffsets(consumer)
-            } catch (e: Exception) {
-                log.error(e) { "Unable to commit offsets during rebalance" }
-            }
-        }
-
-        override fun onPartitionsAssigned(partitions: MutableCollection<TopicPartition>) {
-            log.info { "Partitions assigned $partitions" }
-        }
-    }
 }
