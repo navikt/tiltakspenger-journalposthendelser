@@ -2,12 +2,12 @@ package no.nav.tiltakspenger.journalposthendelser.journalpost.kafka
 
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.delay
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseService
 import no.nav.tiltakspenger.libs.kafka.Consumer
-import no.nav.tiltakspenger.libs.kafka.ManagedKafkaConsumer
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
 import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
@@ -38,6 +38,9 @@ class JournalposthendelseConsumer(
 
     override suspend fun consume(key: String, value: JournalfoeringHendelseRecord) {
         val hendelse = value.toJournalføringshendelseFraKafka()
+        val delayTime = (100000..300000).random()
+        log.info { "Venter i $delayTime millisekunder.." }
+        delay(delayTime.toLong())
         if (hendelse.skalBehandles) {
             log.info { "Mottok journalposthendelse som skal behandles. $hendelse" }
             journalposthendelseService.behandleJournalpostHendelse(hendelse)
