@@ -177,7 +177,11 @@ class ManagedKafkaConsumer<K, V>(
     private fun rebalanceListener(consumer: KafkaConsumer<K, V>) = object : ConsumerRebalanceListener {
         override fun onPartitionsRevoked(partitions: MutableCollection<TopicPartition>) {
             log.info { "Partitions revoked $partitions, committing offsets" }
-            commitOffsets(consumer)
+            try {
+                commitOffsets(consumer)
+            } catch (e: CommitFailedException) {
+                log.error(e) { "Consumer for $topic cannot commit offsets during rebalancing" }
+            }
         }
 
         override fun onPartitionsAssigned(partitions: MutableCollection<TopicPartition>) {
