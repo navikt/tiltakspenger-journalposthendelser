@@ -36,7 +36,7 @@ class JournalposthendelseConsumer(
     override suspend fun consume(key: String, value: JournalfoeringHendelseRecord) {
         val hendelse = value.toJournalføringshendelseFraKafka()
         if (harVentet[hendelse.journalpostId] != true) {
-            val delayTime = (8000..15000).random()
+            val delayTime = (2000..15000).random()
             log.info { "Venter i $delayTime millisekunder.." }
             harVentet[hendelse.journalpostId] = true
             delay(delayTime.toLong())
