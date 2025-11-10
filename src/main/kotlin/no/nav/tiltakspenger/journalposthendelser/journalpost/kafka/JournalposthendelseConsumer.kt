@@ -4,13 +4,9 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
-import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.KAFKA_CONSUMER_GROUP_ID
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseService
 import no.nav.tiltakspenger.libs.kafka.Consumer
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfigImpl
-import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 
 /**
@@ -20,10 +16,11 @@ import org.apache.kafka.common.serialization.StringDeserializer
 class JournalposthendelseConsumer(
     topic: String,
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
-    kafkaConfig: KafkaConfig = if (Configuration.isNais()) KafkaConfigImpl(autoOffsetReset = "earliest") else LocalKafkaConfig(),
+    kafkaConfig: KafkaConfig = KafkaConfigImpl(autoOffsetReset = "earliest"),
     private val journalposthendelseService: JournalposthendelseService,
 ) : Consumer<String, JournalfoeringHendelseRecord> {
     private val log = KotlinLogging.logger { }
+    private val harVentet = mutableMapOf<String, Boolean>()
 
     private val consumer = ManagedKafkaConsumer(
         topic = topic,
@@ -38,9 +35,12 @@ class JournalposthendelseConsumer(
 
     override suspend fun consume(key: String, value: JournalfoeringHendelseRecord) {
         val hendelse = value.toJournalføringshendelseFraKafka()
-        val delayTime = (250000..350000).random()
-        log.info { "Venter i $delayTime millisekunder.." }
-        delay(delayTime.toLong())
+        if (harVentet[hendelse.journalpostId] != true) {
+            val delayTime = (8000..15000).random()
+            log.info { "Venter i $delayTime millisekunder.." }
+            harVentet[hendelse.journalpostId] = true
+            delay(delayTime.toLong())
+        }
         if (hendelse.skalBehandles) {
             log.info { "Mottok journalposthendelse som skal behandles. $hendelse" }
             journalposthendelseService.behandleJournalpostHendelse(hendelse)
