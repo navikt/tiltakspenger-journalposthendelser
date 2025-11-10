@@ -7,7 +7,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import no.nav.tiltakspenger.libs.kafka.ConsumerStatus
-import org.apache.kafka.clients.consumer.CommitFailedException
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.ConsumerRecords
@@ -58,21 +57,18 @@ class ManagedKafkaConsumer<K, V>(
     }
 
     private suspend fun subscribe(consumer: KafkaConsumer<K, V>) {
-        try {
-            while (running) {
+        while (running) {
+            try {
                 consumer.subscribe(listOf(topic), rebalanceListener(consumer))
                 poll(consumer)
+            } catch (e: WakeupException) {
+                log.info { "Consumer for $topic is exiting" }
+                stop()
+            } catch (t: Throwable) {
+                log.error(t) { "Something went wrong with consumer for topic $topic" }
+                consumer.unsubscribe()
+                delay(10_000)
             }
-        } catch (e: WakeupException) {
-            log.info { "Consumer for $topic is exiting" }
-            stop()
-        } catch (e: CommitFailedException) {
-            log.error(e) { "Consumer for $topic cannot commit offsets. Unsubscribing and then retrying" }
-            consumer.unsubscribe()
-            delay(10_000)
-        } catch (t: Throwable) {
-            log.error(t) { "Something went wrong with consumer for topic $topic" }
-            throw t
         }
     }
 
