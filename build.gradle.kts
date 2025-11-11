@@ -4,13 +4,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
-val felleslibVersion = "0.0.611"
-val ktorVersion = "3.3.1"
+val felleslibVersion = "0.0.614"
+val ktorVersion = "3.3.2"
 val confluentVersion = "8.1.0"
 val avroVersion = "1.12.1"
 val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.6"
-val prometeusVersion = "1.15.5"
+val prometeusVersion = "1.16.0"
 val testContainersVersion = "1.21.3"
 val kotestVersion = "6.0.4"
 
@@ -56,7 +56,7 @@ dependencies {
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation(kotlin("stdlib"))
-    implementation("ch.qos.logback:logback-classic:1.5.20")
+    implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("org.jetbrains:annotations:26.0.2-1")
     implementation("com.natpryce:konfig:1.6.10.0")
@@ -82,7 +82,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson:${ktorVersion}")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:11.15.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.16.0")
     implementation("com.zaxxer:HikariCP:7.0.2")
     implementation("org.postgresql:postgresql:42.7.8")
     implementation("com.github.seratch:kotliquery:1.9.1")
