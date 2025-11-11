@@ -62,7 +62,7 @@ class ManagedKafkaConsumer<K, V>(
             } catch (t: Throwable) {
                 log.error(t) { "Something went wrong with consumer for topic $topic" }
                 consumer.unsubscribe()
-                delay(10_000)
+                delay(5_000)
             }
         }
     }
@@ -86,8 +86,8 @@ class ManagedKafkaConsumer<K, V>(
                 records.forEach { record ->
                     process(record)
                     status.success()
-                    consumer.commitSync()
                 }
+                consumer.commitSync()
             } catch (t: Throwable) {
                 log.error(t) { t.message }
                 status.failure()
