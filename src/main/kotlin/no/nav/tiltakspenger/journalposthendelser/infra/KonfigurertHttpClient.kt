@@ -17,9 +17,9 @@ import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import java.time.Duration
 
 fun httpClientApache(
-    connectTimeoutSeconds: Long = 2,
-    requestTimeoutSeconds: Long = 5,
-    socketTimeoutSeconds: Long = 2,
+    connectTimeoutSeconds: Long = 5,
+    requestTimeoutSeconds: Long = 10,
+    socketTimeoutSeconds: Long = 5,
 ) = HttpClient(Apache).config(connectTimeoutSeconds, requestTimeoutSeconds, socketTimeoutSeconds)
 
 private fun HttpClient.config(
