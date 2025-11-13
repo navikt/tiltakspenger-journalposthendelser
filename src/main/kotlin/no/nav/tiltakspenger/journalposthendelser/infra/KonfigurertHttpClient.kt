@@ -45,6 +45,7 @@ private fun HttpClient.config(
         install(HttpRequestRetry) {
             maxRetries = 3
             retryOnServerErrors(maxRetries)
+            retryOnException(retryOnTimeout = true)
             constantDelay(millis = 1000L)
         }
         install(Logging) {
