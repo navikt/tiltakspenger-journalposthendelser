@@ -34,9 +34,14 @@ open class ApplicationContext(log: KLogger) {
     )
 
     val httpClient = httpClientApache()
+    val httpClientSlowApis = httpClientApache(
+        connectTimeoutSeconds = 10,
+        requestTimeoutSeconds = 15,
+        socketTimeoutSeconds = 10,
+    )
     val safJournalpostClient = SafJournalpostClient(
         basePath = Configuration.safUrl,
-        httpClient = httpClient,
+        httpClient = httpClientSlowApis,
         getToken = {
             texasClient.getSystemToken(
                 Configuration.safScope,
