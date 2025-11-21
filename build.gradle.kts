@@ -11,7 +11,7 @@ val avroVersion = "1.12.1"
 val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.6"
 val prometeusVersion = "1.16.0"
-val testContainersVersion = "1.21.3"
+val testContainersVersion = "2.0.2"
 val kotestVersion = "6.0.5"
 
 fun isNonStable(version: String): Boolean {
@@ -104,8 +104,8 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
 
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
-    testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
-    testImplementation("org.testcontainers:postgresql:$testContainersVersion")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:$testContainersVersion")
+    testImplementation("org.testcontainers:testcontainers-postgresql:$testContainersVersion")
 }
 
 spotless {
