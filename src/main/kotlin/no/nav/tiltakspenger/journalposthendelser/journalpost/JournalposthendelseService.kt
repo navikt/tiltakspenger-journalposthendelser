@@ -1,7 +1,6 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.infra.MetricRegister
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
@@ -38,51 +37,45 @@ class JournalposthendelseService(
             """.trimIndent()
         }
 
-        // Skal ikke behandle disse i prod ennå
-        if (!Configuration.isProd()) {
-            val journalposthendelseDB = journalposthendelseRepo.hent(journalpostId)
-            if (skalBehandleJournalposthendelse(
-                    journalpostId = journalpostId,
-                    erJournalført = journalpostMetadata.erJournalfort,
-                    journalposthendelseDB = journalposthendelseDB,
+        val journalposthendelseDB = journalposthendelseRepo.hent(journalpostId)
+        if (skalBehandleJournalposthendelse(
+                journalpostId = journalpostId,
+                erJournalført = journalpostMetadata.erJournalfort,
+                journalposthendelseDB = journalposthendelseDB,
+                correlationId = correlationId,
+            )
+        ) {
+            log.info { "Behandler mottatt journalpost $journalpostId" }
+            registrerMetrikker(journalpostMetadata.brevkode)
+            val journalposthendelseDBUnderArbeid = journalposthendelseDB ?: JournalposthendelseDB(
+                journalpostId = journalpostId,
+                brevkode = journalpostMetadata.brevkode,
+                opprettet = LocalDateTime.now(),
+                sistEndret = LocalDateTime.now(),
+            )
+            val fnr = hentIdent(journalpostMetadata)
+            if (fnr == null) {
+                log.warn { "Fant ikke person for journalpost med id $journalpostId, oppretter fordelingsoppgave" }
+                oppgaveService.opprettFordelingsoppgave(journalposthendelseDBUnderArbeid, correlationId)
+            } else {
+                val oppdatertJournalposthendelseDB = journalpostService.oppdaterEllerFerdigstillJournalpost(
+                    journalposthendelseDB = journalposthendelseDBUnderArbeid.copy(fnr = fnr),
                     correlationId = correlationId,
                 )
-            ) {
-                log.info { "Behandler mottatt journalpost $journalpostId" }
-                registrerMetrikker(journalpostMetadata.brevkode)
-                val journalposthendelseDBUnderArbeid = journalposthendelseDB ?: JournalposthendelseDB(
-                    journalpostId = journalpostId,
-                    brevkode = journalpostMetadata.brevkode,
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
-                )
-                val fnr = hentIdent(journalpostMetadata)
-                if (fnr == null) {
-                    log.warn { "Fant ikke person for journalpost med id $journalpostId, oppretter fordelingsoppgave" }
-                    oppgaveService.opprettFordelingsoppgave(journalposthendelseDBUnderArbeid, correlationId)
+                if (oppdatertJournalposthendelseDB.gjelderPapirsoknad()) {
+                    oppgaveService.opprettOppgaveForPapirsoknad(oppdatertJournalposthendelseDB, correlationId)
                 } else {
-                    val oppdatertJournalposthendelseDB = journalpostService.oppdaterEllerFerdigstillJournalpost(
-                        journalposthendelseDB = journalposthendelseDBUnderArbeid.copy(fnr = fnr),
+                    oppgaveService.opprettJournalforingsoppgave(
+                        journalposthendelseDB = oppdatertJournalposthendelseDB,
+                        tittel = journalpostMetadata.tittel,
                         correlationId = correlationId,
                     )
-                    if (oppdatertJournalposthendelseDB.gjelderPapirsoknad()) {
-                        oppgaveService.opprettOppgaveForPapirsoknad(oppdatertJournalposthendelseDB, correlationId)
-                    } else {
-                        oppgaveService.opprettJournalforingsoppgave(
-                            journalposthendelseDB = oppdatertJournalposthendelseDB,
-                            tittel = journalpostMetadata.tittel,
-                            correlationId = correlationId,
-                        )
-                    }
                 }
-                log.info { "Ferdig med å behandle mottatt journalpost $journalpostId" }
-            } else {
-                log.info { "Behandler ikke journalpost $journalpostId som er ferdig behandlet" }
             }
+            log.info { "Ferdig med å behandle mottatt journalpost $journalpostId" }
+            registrerMetrikker(journalpostMetadata.brevkode)
         } else {
-            if (!hendelse.erJournalført) {
-                registrerMetrikker(journalpostMetadata.brevkode)
-            }
+            log.info { "Behandler ikke journalpost $journalpostId som er ferdig behandlet" }
         }
     }
 
