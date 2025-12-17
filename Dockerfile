@@ -6,7 +6,7 @@ ENV LANG='nb_NO.UTF-8'
 
 WORKDIR /app
 
-COPY build/install/tiltakspenger-journalposthendelser/lib/*.jar .
+COPY build/install/tiltakspenger-journalposthendelser/lib/*.jar ./
 
 USER nobody
 
