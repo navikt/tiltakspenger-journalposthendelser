@@ -10,8 +10,8 @@ private const val APPLICATION_NAME = "tiltakspenger-journalposthendelser"
 const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer-v2"
 
 object Configuration {
-    val applicationHttpPort = getEnvVar("PORT", 8084.toString()).toInt()
-    val logbackConfigFile = getEnvVar("LOGBACK_CONFIG_FILE", "logback.local.xml")
+    val applicationHttpPort = 8080
+    val logbackConfigFile = "logback.xml"
     val safUrl: String = getEnvVar("SAF_URL")
     val safScope: String = getEnvVar("SAF_SCOPE")
     val saksbehandlingApiUrl: String = getEnvVar("SAKSBEHANDLING_API_URL")
@@ -23,7 +23,7 @@ object Configuration {
     val pdlUrl: String = getEnvVar("PDL_URL")
     val pdlScope: String = getEnvVar("PDL_SCOPE")
 
-    val topic = getEnvVar("AAPEN_DOK_JOURNALFOERING_TOPIC")
+    val topic = "teamdokumenthandtering.aapen-dok-journalfoering"
     val naisTokenIntrospectionEndpoint = getEnvVar("NAIS_TOKEN_INTROSPECTION_ENDPOINT")
     val naisTokenEndpoint = getEnvVar("NAIS_TOKEN_ENDPOINT")
     val tokenExchangeEndpoint = getEnvVar("NAIS_TOKEN_EXCHANGE_ENDPOINT")
