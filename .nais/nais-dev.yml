@@ -16,7 +16,7 @@ spec:
       memory: 640Mi
     requests:
       memory: 576Mi
-      cpu: 25m
+      cpu: 50m
   liveness:
     path: /isalive
     initialDelay: 15
