@@ -9,15 +9,14 @@ spec:
   image: {{ image }}
   port: 8080
   replicas:
-  {{#with replicas}}
-    min: {{ replicas.min }}
-    max: {{ replicas.max }}
-  {{/with}}
+    min: 1
+    max: 2
   resources:
     limits:
-      memory: 1000Mi
+      memory: 640Mi
     requests:
-      memory: 500Mi
+      memory: 576Mi
+      cpu: 10m
   liveness:
     path: /isalive
     initialDelay: 15
@@ -33,14 +32,14 @@ spec:
     sqlInstances:
       - name: tiltakspenger-journalposthendelser
         type: POSTGRES_17
-        tier: {{ sqlInstances.tier }}
-        diskAutoresize: {{ sqlInstances.diskAutoresize }}
-        pointInTimeRecovery: {{ sqlInstances.pointInTimeRecovery }}
+        tier: db-f1-micro
+        diskAutoresize: true
+        pointInTimeRecovery: false
         databases:
           - name: journalposthendelser
             envVarPrefix: DB
   kafka:
-    pool: {{ kafka-pool }}
+    pool: nav-dev
   azure:
     application:
       enabled: true
@@ -51,37 +50,31 @@ spec:
           namespace: nais-system
         - application: tiltakspenger-saksbehandling-api
       external:
-       - host: {{ saf.outbound }}
-       - host: {{ oppgave.outbound }}
-       - host: {{ dokarkiv.outbound }}
-       - host: {{ pdl.outbound }}
+       - host: saf-q2.dev-fss-pub.nais.io
+       - host: oppgave.dev-fss-pub.nais.io
+       - host: dokarkiv-q2.dev-fss-pub.nais.io
+       - host: pdl-api.dev-fss-pub.nais.io
   env:
-    - name: PORT
-      value: "8080"
-    - name: LOGBACK_CONFIG_FILE
-      value: "logback.xml"
-    - name: AAPEN_DOK_JOURNALFOERING_TOPIC
-      value: {{ topic }}
     - name: SAF_URL
-      value: {{ saf.url }}
+      value: https://saf-q2.dev-fss-pub.nais.io
     - name: SAF_SCOPE
-      value: {{ saf.scope }}
+      value: api://dev-fss.teamdokumenthandtering.saf/.default
     - name: SAKSBEHANDLING_API_URL
-      value: {{ saksbehandlingApi.url }}
+      value: http://tiltakspenger-saksbehandling-api
     - name: SAKSBEHANDLING_API_SCOPE
-      value: {{ saksbehandlingApi.scope }}
+      value: api://dev-gcp.tpts.tiltakspenger-saksbehandling-api/.default
     - name: OPPGAVE_URL
-      value: {{ oppgave.url }}
+      value: https://oppgave.dev-fss-pub.nais.io
     - name: OPPGAVE_SCOPE
-      value: {{ oppgave.scope }}
+      value: api://dev-fss.oppgavehandtering.oppgave/.default
     - name: DOKARKIV_URL
-      value: {{ dokarkiv.url }}
+      value: https://dokarkiv-q2.dev-fss-pub.nais.io
     - name: DOKARKIV_SCOPE
-      value: {{ dokarkiv.scope }}
+      value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
     - name: PDL_URL
-      value: {{ pdl.url }}
+      value: https://pdl-api.dev-fss-pub.nais.io
     - name: PDL_SCOPE
-      value: {{ pdl.scope }}
+      value: api://dev-fss.pdl.pdl-api/.default
   observability:
     autoInstrumentation:
       enabled: true

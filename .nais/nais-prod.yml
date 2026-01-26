@@ -1,0 +1,85 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: tiltakspenger-journalposthendelser
+  namespace: tpts
+  labels:
+    team: tpts
+spec:
+  image: {{ image }}
+  port: 8080
+  replicas:
+    min: 2
+    max: 4
+  resources:
+    limits:
+      memory: 704Mi
+    requests:
+      memory: 672Mi
+      cpu: 95m
+  liveness:
+    path: /isalive
+    initialDelay: 15
+  readiness:
+    path: /isready
+    initialDelay: 15
+    periodSeconds: 5
+    failureThreshold: 1
+  prometheus:
+    enabled: true
+    path: /metrics
+  gcp:
+    sqlInstances:
+      - name: tiltakspenger-journalposthendelser
+        type: POSTGRES_17
+        tier: db-custom-1-3840
+        diskAutoresize: true
+        pointInTimeRecovery: true
+        databases:
+          - name: journalposthendelser
+            envVarPrefix: DB
+  kafka:
+    pool: nav-prod
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
+        - application: tiltakspenger-saksbehandling-api
+      external:
+       - host: saf.prod-fss-pub.nais.io
+       - host: oppgave.prod-fss-pub.nais.io
+       - host: dokarkiv.prod-fss-pub.nais.io
+       - host: pdl-api.prod-fss-pub.nais.io
+  env:
+    - name: SAF_URL
+      value: https://saf.prod-fss-pub.nais.io
+    - name: SAF_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.saf/.default
+    - name: SAKSBEHANDLING_API_URL
+      value: http://tiltakspenger-saksbehandling-api
+    - name: SAKSBEHANDLING_API_SCOPE
+      value: api://prod-gcp.tpts.tiltakspenger-saksbehandling-api/.default
+    - name: OPPGAVE_URL
+      value: https://oppgave.prod-fss-pub.nais.io
+    - name: OPPGAVE_SCOPE
+      value: api://prod-fss.oppgavehandtering.oppgave/.default
+    - name: DOKARKIV_URL
+      value: https://dokarkiv.prod-fss-pub.nais.io
+    - name: DOKARKIV_SCOPE
+      value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
+    - name: PDL_URL
+      value: https://pdl-api.prod-fss-pub.nais.io
+    - name: PDL_SCOPE
+      value: api://prod-fss.pdl.pdl-api/.default
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
