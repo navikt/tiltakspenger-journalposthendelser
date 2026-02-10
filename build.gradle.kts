@@ -25,7 +25,7 @@ plugins {
     application
     kotlin("jvm") version "2.3.0"
     kotlin("plugin.serialization") version "2.3.0"
-    id("com.diffplug.spotless") version "8.1.0"
+    id("com.diffplug.spotless") version "8.2.1"
     id("com.github.ben-manes.versions") version "0.53.0"
     // https://github.com/androa/gradle-plugin-avro
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
