@@ -105,8 +105,11 @@ class JournalposthendelseService(
     private fun registrerMetrikker(brevkode: String?) {
         when (brevkode) {
             Brevkode.SØKNAD.brevkode -> MetricRegister.SØKNAD_MOTTATT.inc()
+
             Brevkode.KLAGE.brevkode -> MetricRegister.KLAGE_MOTTATT.inc()
+
             Brevkode.MELDEKORT.brevkode -> MetricRegister.MELDEKORT_MOTTATT.inc()
+
             else -> {
                 log.info { "Annen brevkode mottatt: $brevkode" }
                 MetricRegister.ANNEN_BREVKODE_MOTTATT.inc()
