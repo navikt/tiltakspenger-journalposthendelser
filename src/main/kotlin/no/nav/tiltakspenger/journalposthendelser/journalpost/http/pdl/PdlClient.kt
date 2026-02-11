@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost.http.pdl
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
@@ -15,6 +14,7 @@ import io.ktor.http.isSuccess
 import no.nav.tiltakspenger.journalposthendelser.infra.graphql.GraphQLResponse
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.objectMapper
+import tools.jackson.module.kotlin.readValue
 
 /**
  * https://pdl-docs.ansatt.nav.no/ekstern/index.html

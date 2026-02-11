@@ -1,6 +1,5 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.request.headers
@@ -13,6 +12,7 @@ import no.nav.tiltakspenger.journalposthendelser.infra.graphql.GraphQLResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.json.objectMapper
+import tools.jackson.module.kotlin.readValue
 import java.time.LocalDateTime
 
 /**

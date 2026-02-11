@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
-val felleslibVersion = "0.0.673"
+val felleslibVersion = "0.0.685"
 val ktorVersion = "3.4.0"
 val confluentVersion = "8.1.1"
 val avroVersion = "1.12.1"
@@ -79,7 +79,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jwt:${ktorVersion}")
 
     // Jackson
-    implementation("io.ktor:ktor-serialization-jackson:${ktorVersion}")
+    implementation("io.ktor:ktor-serialization-jackson3:${ktorVersion}")
 
     // DB
     implementation("org.flywaydb:flyway-database-postgresql:12.0.0")
