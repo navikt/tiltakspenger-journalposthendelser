@@ -1,9 +1,5 @@
 package no.nav.tiltakspenger.journalposthendelser.infra
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.plugins.HttpRequestRetry
@@ -12,7 +8,9 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.serialization.jackson.jackson
+import io.ktor.http.ContentType
+import io.ktor.serialization.jackson3.JacksonConverter
+import no.nav.tiltakspenger.libs.json.objectMapper
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import java.time.Duration
 
@@ -29,13 +27,7 @@ private fun HttpClient.config(
 ) =
     this.config {
         install(ContentNegotiation) {
-            jackson {
-                registerModule(JavaTimeModule())
-                registerKotlinModule()
-                enable(SerializationFeature.INDENT_OUTPUT)
-                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            }
+            register(ContentType.Application.Json, JacksonConverter(objectMapper))
         }
         install(HttpTimeout) {
             this.connectTimeoutMillis = Duration.ofSeconds(connectTimeoutSeconds).toMillis()
