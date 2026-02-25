@@ -1,7 +1,7 @@
 package no.nav.tiltakspenger.journalposthendelser.infra
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
+import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -18,7 +18,7 @@ fun httpClientApache(
     connectTimeoutSeconds: Long = 5,
     requestTimeoutSeconds: Long = 10,
     socketTimeoutSeconds: Long = 5,
-) = HttpClient(Apache).config(connectTimeoutSeconds, requestTimeoutSeconds, socketTimeoutSeconds)
+) = HttpClient(Apache5).config(connectTimeoutSeconds, requestTimeoutSeconds, socketTimeoutSeconds)
 
 private fun HttpClient.config(
     connectTimeoutSeconds: Long,
