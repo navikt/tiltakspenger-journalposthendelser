@@ -23,7 +23,7 @@ fun isNonStable(version: String): Boolean {
 
 plugins {
     application
-    kotlin("jvm") version "2.3.10"
+    kotlin("jvm") version "2.3.20"
     kotlin("plugin.serialization") version "2.3.20"
     id("com.diffplug.spotless") version "8.3.0"
     id("com.github.ben-manes.versions") version "0.53.0"
