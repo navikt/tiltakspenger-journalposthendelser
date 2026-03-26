@@ -11,7 +11,7 @@ val avroVersion = "1.12.1"
 val caffeineVersion = "3.2.3"
 val mockkVersion = "1.14.9"
 val prometeusVersion = "1.16.4"
-val testContainersVersion = "2.0.3"
+val testContainersVersion = "2.0.4"
 val kotestVersion = "6.1.7"
 
 fun isNonStable(version: String): Boolean {
