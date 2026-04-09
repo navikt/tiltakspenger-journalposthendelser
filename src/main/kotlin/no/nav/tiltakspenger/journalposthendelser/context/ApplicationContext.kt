@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.journalposthendelser.context
 
 import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.infra.db.DataSourceSetup
 import no.nav.tiltakspenger.journalposthendelser.infra.httpClientApache
@@ -19,8 +20,12 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
+import java.time.Clock
 
-open class ApplicationContext(log: KLogger) {
+open class ApplicationContext(
+    clock: Clock,
+) {
+    private val log: KLogger = KotlinLogging.logger { }
     val dataSource = DataSourceSetup.createDatasource(Configuration.jdbcUrl)
     val sessionCounter = SessionCounter(log)
     val sessionFactory = PostgresSessionFactory(dataSource, sessionCounter)
@@ -31,6 +36,7 @@ open class ApplicationContext(log: KLogger) {
         introspectionUrl = Configuration.naisTokenIntrospectionEndpoint,
         tokenUrl = Configuration.naisTokenEndpoint,
         tokenExchangeUrl = Configuration.tokenExchangeEndpoint,
+        clock = clock,
     )
 
     val httpClient = httpClientApache()
@@ -82,6 +88,7 @@ open class ApplicationContext(log: KLogger) {
                 rewriteAudienceTarget = false,
             )
         },
+        clock = clock,
     )
     val dokarkivClient = DokarkivClient(
         basePath = Configuration.dokarkivUrl,
@@ -99,10 +106,12 @@ open class ApplicationContext(log: KLogger) {
         saksbehandlingApiClient = saksbehandlingApiClient,
         dokarkivClient = dokarkivClient,
         journalposthendelseRepo = journalposthendelseRepo,
+        clock = clock,
     )
     val oppgaveService = OppgaveService(
         oppgaveClient = oppgaveClient,
         journalposthendelseRepo = journalposthendelseRepo,
+        clock = clock,
     )
 
     val journalposthendelseService = JournalposthendelseService(
@@ -111,6 +120,7 @@ open class ApplicationContext(log: KLogger) {
         pdlClient = pdlClient,
         journalpostService = journalpostService,
         oppgaveService = oppgaveService,
+        clock = clock,
     )
 
     val journalposthendelseConsumer = JournalposthendelseConsumer(

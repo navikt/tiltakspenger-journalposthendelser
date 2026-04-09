@@ -13,9 +13,11 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.Oppgav
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.Clock
 
 class OppgaveServiceTest {
     private val oppgaveClient = mockk<OppgaveClient>()
@@ -24,6 +26,7 @@ class OppgaveServiceTest {
     private val saksnummer = "34567"
     private val oppgaveId = 9876
     private val tittel = "Klage på tiltakspenger"
+    private val clock: Clock = TikkendeKlokke()
 
     @BeforeEach
     fun clearMockData() {
@@ -38,16 +41,16 @@ class OppgaveServiceTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
-                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo)
+                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = journalpostId,
                     fnr = fnr,
                     brevkode = Brevkode.SØKNAD.brevkode,
                     saksnummer = saksnummer,
-                    journalpostOppdatertTidspunkt = LocalDateTime.now(),
-                    journalpostFerdigstiltTidspunkt = LocalDateTime.now(),
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    journalpostOppdatertTidspunkt = nå(clock),
+                    journalpostFerdigstiltTidspunkt = nå(clock),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -71,19 +74,19 @@ class OppgaveServiceTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
-                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo)
+                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = journalpostId,
                     fnr = fnr,
                     brevkode = Brevkode.SØKNAD.brevkode,
                     saksnummer = saksnummer,
-                    journalpostOppdatertTidspunkt = LocalDateTime.now(),
-                    journalpostFerdigstiltTidspunkt = LocalDateTime.now(),
+                    journalpostOppdatertTidspunkt = nå(clock),
+                    journalpostFerdigstiltTidspunkt = nå(clock),
                     oppgaveId = oppgaveId.toString(),
                     oppgavetype = OppgaveType.BEHANDLE_SAK,
-                    oppgaveOpprettetTidspunkt = LocalDateTime.now(),
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    oppgaveOpprettetTidspunkt = nå(clock),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -107,15 +110,15 @@ class OppgaveServiceTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
-                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo)
+                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = journalpostId,
                     fnr = fnr,
                     brevkode = Brevkode.KLAGE.brevkode,
                     saksnummer = saksnummer,
-                    journalpostOppdatertTidspunkt = LocalDateTime.now(),
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    journalpostOppdatertTidspunkt = nå(clock),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -140,18 +143,18 @@ class OppgaveServiceTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
-                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo)
+                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = journalpostId,
                     fnr = fnr,
                     brevkode = Brevkode.KLAGE.brevkode,
                     saksnummer = saksnummer,
-                    journalpostOppdatertTidspunkt = LocalDateTime.now(),
+                    journalpostOppdatertTidspunkt = nå(clock),
                     oppgaveId = oppgaveId.toString(),
                     oppgavetype = OppgaveType.JOURNALFORING,
-                    oppgaveOpprettetTidspunkt = LocalDateTime.now(),
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    oppgaveOpprettetTidspunkt = nå(clock),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -176,12 +179,12 @@ class OppgaveServiceTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
-                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo)
+                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = journalpostId,
                     brevkode = Brevkode.KLAGE.brevkode,
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -205,15 +208,15 @@ class OppgaveServiceTest {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
-                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo)
+                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = journalpostId,
                     brevkode = Brevkode.KLAGE.brevkode,
                     oppgaveId = oppgaveId.toString(),
                     oppgavetype = OppgaveType.FORDELING,
-                    oppgaveOpprettetTidspunkt = LocalDateTime.now(),
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    oppgaveOpprettetTidspunkt = nå(clock),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 

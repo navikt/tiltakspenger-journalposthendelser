@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 val jvmVersion = JvmTarget.JVM_21
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
-val felleslibVersion = "0.0.737"
+val felleslibVersion = "0.0.752"
 val ktorVersion = "3.4.2"
 val confluentVersion = "8.1.1"
 val avroVersion = "1.12.1"
@@ -46,12 +46,14 @@ application {
 dependencies {
     //libs
     implementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:periodisering:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:persistering-infrastruktur:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:texas:$felleslibVersion")
+    testImplementation("com.github.navikt.tiltakspenger-libs:persistering-test-common:$felleslibVersion")
 
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))

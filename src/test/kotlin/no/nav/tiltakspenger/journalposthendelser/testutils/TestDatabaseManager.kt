@@ -1,111 +1,41 @@
 package no.nav.tiltakspenger.journalposthendelser.testutils
 
-import com.zaxxer.hikari.HikariDataSource
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.util.date.getTimeMillis
-import kotliquery.sessionOf
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.sqlQuery
-import org.flywaydb.core.Flyway
-import org.flywaydb.core.api.output.MigrateResult
-import org.testcontainers.postgresql.PostgreSQLContainer
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import javax.sql.DataSource
-import kotlin.concurrent.read
-import kotlin.concurrent.write
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.persistering.domene.SessionFactory
+import no.nav.tiltakspenger.libs.persistering.test.common.TestDatabaseConfig
+import java.time.Clock
+import no.nav.tiltakspenger.libs.persistering.test.common.TestDatabaseManager as LibsTestDatabaseManager
 
-/**
- * Lånt fra tiltakspenger-saksbehandling-api
- */
-internal class TestDatabaseManager {
+internal class TestDatabaseManager(
+    config: TestDatabaseConfig = TestDatabaseConfig(),
+) {
+    private val delegate = LibsTestDatabaseManager(
+        config = config,
+        idGeneratorsFactory = { },
+    )
 
-    private val log = KotlinLogging.logger {}
-
-    private val postgres: PostgreSQLContainer by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        PostgreSQLContainer("postgres:17-alpine").apply { start() }
-    }
-
-    private val dataSource: HikariDataSource by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        HikariDataSource().apply {
-            this.jdbcUrl = postgres.jdbcUrl
-            this.maximumPoolSize = 100
-            this.minimumIdle = 1
-            this.idleTimeout = 10001
-            this.connectionTimeout = 1000
-            this.maxLifetime = 30001
-            this.username = postgres.username
-            this.password = postgres.password
-            initializationFailTimeout = 5000
-        }.also {
-            migrateDatabase(it)
-        }
-    }
-
-    private val counter = AtomicInteger(0)
-
-    private val started: Long by lazy { getTimeMillis() }
-
-    @Volatile
-    private var isClosed = false
-    private val lock = ReentrantReadWriteLock()
+    val sessionFactory: SessionFactory get() = delegate.sessionFactory
 
     /**
-     * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon.
+     * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon. Brukes når man gjør operasjoner på tvers av saker.
      */
-    fun withMigratedDb(runIsolated: Boolean = false, test: (TestDataHelper) -> Unit) {
-        if (isClosed) {
-            throw IllegalStateException("The test database is closed.")
-        }
-        counter.incrementAndGet()
-        try {
-            if (runIsolated) {
-                lock.write {
-                    cleanDatabase()
-                    test(TestDataHelper(dataSource))
-                }
-            } else {
-                lock.read {
-                    test(TestDataHelper(dataSource))
-                }
-            }
-        } finally {
-            if (getTimeMillis() - started > 10 && counter.get() == 0) {
-                close()
-            }
-        }
-        counter.decrementAndGet()
-    }
-
-    private fun cleanDatabase() {
-        sessionOf(dataSource).run(
-            sqlQuery(
-                """
-                TRUNCATE
-                  journalposthendelse
-                """,
-            ).asUpdate,
-        )
-    }
-
-    private fun close() {
-        if (!isClosed) {
-            log.info { "Stenger testdatabasen" }
-            dataSource.close()
-            postgres.stop()
-            isClosed = true
-        } else {
-            log.info { "Testdatabasen er allerede stengt. Vi gjør ingenting." }
+    fun withMigratedDbTestDataHelper(
+        runIsolated: Boolean = false,
+        clock: Clock = TikkendeKlokke(),
+        test: (TestDataHelper) -> Unit,
+    ) {
+        delegate.withMigratedDb(runIsolated = runIsolated, clock = clock) { _, _, _ ->
+            test(TestDataHelper(delegate.dataSource(runIsolated), clock))
         }
     }
 
-    private fun migrateDatabase(dataSource: DataSource): MigrateResult? {
-        return Flyway
-            .configure()
-            .loggers("slf4j")
-            .encoding("UTF-8")
-            .locations("db/migration")
-            .dataSource(dataSource)
-            .load()
-            .migrate()
+    fun withMigratedDb(
+        runIsolated: Boolean = false,
+        clock: Clock = TikkendeKlokke(),
+        test: (SessionFactory, Clock) -> Unit,
+    ) {
+        delegate.withMigratedDb(runIsolated = runIsolated, clock = clock) { sessionFactory, _, clk ->
+            test(sessionFactory, clk)
+        }
     }
 }

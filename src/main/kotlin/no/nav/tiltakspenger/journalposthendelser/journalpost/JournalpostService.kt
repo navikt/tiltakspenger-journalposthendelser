@@ -6,12 +6,14 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandling
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import java.time.LocalDateTime
+import no.nav.tiltakspenger.libs.common.nå
+import java.time.Clock
 
 class JournalpostService(
     private val saksbehandlingApiClient: SaksbehandlingApiClient,
     private val dokarkivClient: DokarkivClient,
     private val journalposthendelseRepo: JournalposthendelseRepo,
+    private val clock: Clock,
 ) {
     val log = KotlinLogging.logger {}
 
@@ -32,7 +34,8 @@ class JournalpostService(
         correlationId: CorrelationId,
     ): JournalposthendelseDB {
         if (!journalposthendelseDB.harOppdatertJournalpost() && journalposthendelseDB.kanOppdatereJournalpost()) {
-            val saksnummer = saksbehandlingApiClient.hentEllerOpprettSaksnummer(journalposthendelseDB.fnr!!, correlationId)
+            val saksnummer =
+                saksbehandlingApiClient.hentEllerOpprettSaksnummer(journalposthendelseDB.fnr!!, correlationId)
             dokarkivClient.knyttSakTilJournalpost(
                 journalpostId = journalposthendelseDB.journalpostId,
                 saksnummer = saksnummer,
@@ -40,10 +43,11 @@ class JournalpostService(
                 gjelderPapirsoknad = journalposthendelseDB.gjelderPapirsoknad(),
                 correlationId = correlationId,
             )
+            val nå = nå(clock)
             val journalposthendelseDBOppdatertJP = journalposthendelseDB.copy(
                 saksnummer = saksnummer,
-                journalpostOppdatertTidspunkt = LocalDateTime.now(),
-                sistEndret = LocalDateTime.now(),
+                journalpostOppdatertTidspunkt = nå,
+                sistEndret = nå,
             )
             journalposthendelseRepo.lagre(journalposthendelseDBOppdatertJP)
             log.info { "Oppdaterte journalpost med id ${journalposthendelseDB.journalpostId}" }
@@ -62,9 +66,10 @@ class JournalpostService(
                 journalpostId = journalposthendelseDB.journalpostId,
                 correlationId = correlationId,
             )
+            val nå = nå(clock)
             val journalposthendelseDBFerdigstiltJP = journalposthendelseDB.copy(
-                journalpostFerdigstiltTidspunkt = LocalDateTime.now(),
-                sistEndret = LocalDateTime.now(),
+                journalpostFerdigstiltTidspunkt = nå,
+                sistEndret = nå,
             )
             journalposthendelseRepo.lagre(journalposthendelseDBFerdigstiltJP)
             log.info { "Ferdigstilte journalpost med id ${journalposthendelseDB.journalpostId}" }

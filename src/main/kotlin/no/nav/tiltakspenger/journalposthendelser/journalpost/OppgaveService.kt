@@ -6,11 +6,13 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.Oppgav
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import java.time.LocalDateTime
+import no.nav.tiltakspenger.libs.common.nå
+import java.time.Clock
 
 class OppgaveService(
     private val oppgaveClient: OppgaveClient,
     private val journalposthendelseRepo: JournalposthendelseRepo,
+    private val clock: Clock,
 ) {
     val log = KotlinLogging.logger {}
 
@@ -24,11 +26,12 @@ class OppgaveService(
                 journalpostId = journalposthendelseDB.journalpostId,
                 correlationId = correlationId,
             )
+            val nå = nå(clock)
             val oppdatertJournalposthendelseDB = journalposthendelseDB.copy(
                 oppgaveId = oppgaveId.toString(),
                 oppgavetype = OppgaveType.BEHANDLE_SAK,
-                oppgaveOpprettetTidspunkt = LocalDateTime.now(),
-                sistEndret = LocalDateTime.now(),
+                oppgaveOpprettetTidspunkt = nå,
+                sistEndret = nå,
             )
             journalposthendelseRepo.lagre(oppdatertJournalposthendelseDB)
             log.info { "Opprettet behandle sak-oppgave for journalpost med id ${journalposthendelseDB.journalpostId}" }
@@ -49,11 +52,12 @@ class OppgaveService(
                 journalpostTittel = tittel ?: "Mottatt dokument",
                 correlationId = correlationId,
             )
+            val nå = nå(clock)
             val oppdatertJournalposthendelseDB = journalposthendelseDB.copy(
                 oppgaveId = oppgaveId.toString(),
                 oppgavetype = OppgaveType.JOURNALFORING,
-                oppgaveOpprettetTidspunkt = LocalDateTime.now(),
-                sistEndret = LocalDateTime.now(),
+                oppgaveOpprettetTidspunkt = nå,
+                sistEndret = nå,
             )
             journalposthendelseRepo.lagre(oppdatertJournalposthendelseDB)
             log.info { "Opprettet journalføringsoppgave for journalpost med id ${journalposthendelseDB.journalpostId}" }
@@ -71,11 +75,12 @@ class OppgaveService(
                 journalpostId = journalposthendelseDB.journalpostId,
                 correlationId = correlationId,
             )
+            val nå = nå(clock)
             val oppdatertJournalposthendelseDB = journalposthendelseDB.copy(
                 oppgaveId = oppgaveId.toString(),
                 oppgavetype = OppgaveType.FORDELING,
-                oppgaveOpprettetTidspunkt = LocalDateTime.now(),
-                sistEndret = LocalDateTime.now(),
+                oppgaveOpprettetTidspunkt = nå,
+                sistEndret = nå,
             )
             journalposthendelseRepo.lagre(oppdatertJournalposthendelseDB)
             log.info { "Opprettet fordelingsoppgave for journalpost med id ${journalposthendelseDB.journalpostId}" }

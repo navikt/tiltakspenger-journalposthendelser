@@ -10,7 +10,8 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.Journalførin
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.libs.common.CorrelationId
-import java.time.LocalDateTime
+import no.nav.tiltakspenger.libs.common.nå
+import java.time.Clock
 
 class JournalposthendelseService(
     private val safJournalpostClient: SafJournalpostClient,
@@ -18,6 +19,7 @@ class JournalposthendelseService(
     private val pdlClient: PdlClient,
     private val journalpostService: JournalpostService,
     private val oppgaveService: OppgaveService,
+    private val clock: Clock,
 ) {
     val log = KotlinLogging.logger {}
 
@@ -47,11 +49,12 @@ class JournalposthendelseService(
         ) {
             log.info { "Behandler mottatt journalpost $journalpostId" }
             registrerMetrikker(journalpostMetadata.brevkode)
+            val nå = nå(clock)
             val journalposthendelseDBUnderArbeid = journalposthendelseDB ?: JournalposthendelseDB(
                 journalpostId = journalpostId,
                 brevkode = journalpostMetadata.brevkode,
-                opprettet = LocalDateTime.now(),
-                sistEndret = LocalDateTime.now(),
+                opprettet = nå,
+                sistEndret = nå,
             )
             val fnr = hentIdent(journalpostMetadata)
             if (fnr == null) {

@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave
 
+import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
 
@@ -12,39 +13,45 @@ data class OpprettOppgaveRequest(
     val beskrivelse: String?,
     val tema: String = TEMA_TILTAKSPENGER,
     val oppgavetype: String,
-    val aktivDato: LocalDate = LocalDate.now(),
-    val fristFerdigstillelse: LocalDate = finnFristForFerdigstillingAvOppgave(LocalDate.now().plusDays(3)),
+    val aktivDato: LocalDate,
+    val fristFerdigstillelse: LocalDate = finnFristForFerdigstillingAvOppgave(aktivDato.plusDays(3)),
     val prioritet: PrioritetType = PrioritetType.NORM,
 ) {
     companion object {
         fun opprettOppgaveRequestForPapirsoknad(
             fnr: String,
             journalpostId: String,
+            clock: Clock,
         ) = OpprettOppgaveRequest(
             personident = fnr,
             journalpostId = journalpostId,
             beskrivelse = "Ny søknad om tiltakspenger mottatt på papir. Behandles i ny løsning.",
             oppgavetype = OppgaveType.BEHANDLE_SAK.kode,
+            aktivDato = LocalDate.now(clock),
         )
 
         fun opprettOppgaveRequestForJournalforingsoppgave(
             fnr: String,
             journalpostId: String,
             journalpostTittel: String,
+            clock: Clock,
         ) = OpprettOppgaveRequest(
             personident = fnr,
             journalpostId = journalpostId,
             beskrivelse = journalpostTittel,
             oppgavetype = OppgaveType.JOURNALFORING.kode,
+            aktivDato = LocalDate.now(clock),
         )
 
         fun opprettOppgaveRequestForFordelingsoppgave(
             journalpostId: String,
+            clock: Clock,
         ) = OpprettOppgaveRequest(
             personident = null,
             journalpostId = journalpostId,
             beskrivelse = null,
             oppgavetype = OppgaveType.FORDELING.kode,
+            aktivDato = LocalDate.now(clock),
         )
     }
 }

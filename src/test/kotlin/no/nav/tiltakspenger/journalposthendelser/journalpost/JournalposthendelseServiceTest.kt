@@ -24,10 +24,12 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.Journalp
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.journalposthendelser.testutils.shouldBeCloseTo
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.LocalDateTime
+import java.time.Clock
 
 class JournalposthendelseServiceTest {
     private val safJournalpostClient = mockk<SafJournalpostClient>()
@@ -40,6 +42,7 @@ class JournalposthendelseServiceTest {
     private val saksnummer = "34567"
     private val oppgaveId = 9876
     private val tittel = "Klage på tiltakspenger"
+    private val clock: Clock = TikkendeKlokke()
 
     fun journalføringshendelseFraKafka(
         journalpostStatus: String = "MOTTATT",
@@ -128,13 +131,13 @@ class JournalposthendelseServiceTest {
                     fnr = fnr,
                     saksnummer = saksnummer,
                     brevkode = Brevkode.SØKNAD.brevkode,
-                    journalpostOppdatertTidspunkt = LocalDateTime.now().minusMinutes(2),
-                    journalpostFerdigstiltTidspunkt = LocalDateTime.now().minusMinutes(2),
+                    journalpostOppdatertTidspunkt = nå(clock).minusMinutes(2),
+                    journalpostFerdigstiltTidspunkt = nå(clock).minusMinutes(2),
                     oppgaveId = oppgaveId.toString(),
                     oppgavetype = OppgaveType.BEHANDLE_SAK,
-                    oppgaveOpprettetTidspunkt = LocalDateTime.now().minusMinutes(1),
-                    opprettet = LocalDateTime.now().minusMinutes(2),
-                    sistEndret = LocalDateTime.now().minusMinutes(1),
+                    oppgaveOpprettetTidspunkt = nå(clock).minusMinutes(1),
+                    opprettet = nå(clock).minusMinutes(2),
+                    sistEndret = nå(clock).minusMinutes(1),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -196,10 +199,10 @@ class JournalposthendelseServiceTest {
                     fnr = fnr,
                     saksnummer = saksnummer,
                     brevkode = Brevkode.SØKNAD.brevkode,
-                    journalpostOppdatertTidspunkt = LocalDateTime.now().minusMinutes(2),
-                    journalpostFerdigstiltTidspunkt = LocalDateTime.now().minusMinutes(2),
-                    opprettet = LocalDateTime.now().minusMinutes(2),
-                    sistEndret = LocalDateTime.now().minusMinutes(2),
+                    journalpostOppdatertTidspunkt = nå(clock).minusMinutes(2),
+                    journalpostFerdigstiltTidspunkt = nå(clock).minusMinutes(2),
+                    opprettet = nå(clock).minusMinutes(2),
+                    sistEndret = nå(clock).minusMinutes(2),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -209,8 +212,8 @@ class JournalposthendelseServiceTest {
                 journalposthendelseFraDB shouldNotBe null
                 journalposthendelseFraDB?.oppgaveId shouldBe oppgaveId.toString()
                 journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.BEHANDLE_SAK
-                journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo LocalDateTime.now()
-                journalposthendelseFraDB?.sistEndret shouldBeCloseTo LocalDateTime.now()
+                journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo nå(clock)
+                journalposthendelseFraDB?.sistEndret shouldBeCloseTo nå(clock)
 
                 coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(fnr, journalpostId) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
@@ -240,8 +243,8 @@ class JournalposthendelseServiceTest {
                 journalposthendelseFraDB?.journalpostFerdigstiltTidspunkt shouldBe null
                 journalposthendelseFraDB?.oppgaveId shouldBe oppgaveId.toString()
                 journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.FORDELING
-                journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo LocalDateTime.now()
-                journalposthendelseFraDB?.sistEndret shouldBeCloseTo LocalDateTime.now()
+                journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo nå(clock)
+                journalposthendelseFraDB?.sistEndret shouldBeCloseTo nå(clock)
 
                 coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any(), any()) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
@@ -272,12 +275,12 @@ class JournalposthendelseServiceTest {
                 journalposthendelseFraDB?.fnr shouldBe fnr
                 journalposthendelseFraDB?.saksnummer shouldBe saksnummer
                 journalposthendelseFraDB?.brevkode shouldBe Brevkode.KLAGE.brevkode
-                journalposthendelseFraDB?.journalpostOppdatertTidspunkt shouldBeCloseTo LocalDateTime.now()
+                journalposthendelseFraDB?.journalpostOppdatertTidspunkt shouldBeCloseTo nå(clock)
                 journalposthendelseFraDB?.journalpostFerdigstiltTidspunkt shouldBe null
                 journalposthendelseFraDB?.oppgaveId shouldBe oppgaveId.toString()
                 journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.JOURNALFORING
-                journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo LocalDateTime.now()
-                journalposthendelseFraDB?.sistEndret shouldBeCloseTo LocalDateTime.now()
+                journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo nå(clock)
+                journalposthendelseFraDB?.sistEndret shouldBeCloseTo nå(clock)
 
                 coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(aktorId, journalpostId) }
                 coVerify(exactly = 1) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(fnr, any()) }
@@ -311,12 +314,12 @@ class JournalposthendelseServiceTest {
                 journalposthendelseFraDB?.fnr shouldBe fnr
                 journalposthendelseFraDB?.saksnummer shouldBe saksnummer
                 journalposthendelseFraDB?.brevkode shouldBe Brevkode.SØKNAD.brevkode
-                journalposthendelseFraDB?.journalpostOppdatertTidspunkt shouldBeCloseTo LocalDateTime.now()
-                journalposthendelseFraDB?.journalpostFerdigstiltTidspunkt shouldBeCloseTo LocalDateTime.now()
+                journalposthendelseFraDB?.journalpostOppdatertTidspunkt shouldBeCloseTo nå(clock)
+                journalposthendelseFraDB?.journalpostFerdigstiltTidspunkt shouldBeCloseTo nå(clock)
                 journalposthendelseFraDB?.oppgaveId shouldBe oppgaveId.toString()
                 journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.BEHANDLE_SAK
-                journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo LocalDateTime.now()
-                journalposthendelseFraDB?.sistEndret shouldBeCloseTo LocalDateTime.now()
+                journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo nå(clock)
+                journalposthendelseFraDB?.sistEndret shouldBeCloseTo nå(clock)
 
                 coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(fnr, journalpostId) }
                 coVerify(exactly = 1) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(fnr, any()) }
@@ -349,7 +352,7 @@ class JournalposthendelseServiceTest {
                 type = brukerIdType,
             ),
             erJournalfort = erJournalfort,
-            datoOpprettet = LocalDateTime.now().minusMinutes(2),
+            datoOpprettet = nå(clock).minusMinutes(2),
             brevkode = brevkode?.brevkode,
             tittel = tittel,
         )
@@ -363,10 +366,13 @@ class JournalposthendelseServiceTest {
                 saksbehandlingApiClient = saksbehandlingApiClient,
                 dokarkivClient = dokarkivClient,
                 journalposthendelseRepo = journalposthendelseRepo,
+                clock = clock,
             ),
             oppgaveService = OppgaveService(
                 oppgaveClient = oppgaveClient,
                 journalposthendelseRepo = journalposthendelseRepo,
+                clock = clock,
             ),
+            clock = clock,
         )
 }

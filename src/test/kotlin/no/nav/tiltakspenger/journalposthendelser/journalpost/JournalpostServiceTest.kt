@@ -13,14 +13,17 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandling
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.Clock
 
 class JournalpostServiceTest {
     private val saksbehandlingApiClient = mockk<SaksbehandlingApiClient>()
     private val dokarkivClient = mockk<DokarkivClient>(relaxed = true)
     private val saksnummer = "34567"
+    private val clock: Clock = TikkendeKlokke()
 
     @BeforeEach
     fun clearMockData() {
@@ -34,13 +37,13 @@ class JournalpostServiceTest {
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalpostService =
-                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo)
+                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = "4567",
                     fnr = "12345678910",
                     brevkode = Brevkode.SØKNAD.brevkode,
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -91,15 +94,15 @@ class JournalpostServiceTest {
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalpostService =
-                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo)
+                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = "4567",
                     fnr = "12345678910",
                     brevkode = Brevkode.SØKNAD.brevkode,
                     saksnummer = saksnummer,
-                    journalpostOppdatertTidspunkt = LocalDateTime.now(),
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    journalpostOppdatertTidspunkt = nå(clock),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -137,16 +140,16 @@ class JournalpostServiceTest {
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalpostService =
-                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo)
+                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = "4567",
                     fnr = "12345678910",
                     brevkode = Brevkode.SØKNAD.brevkode,
                     saksnummer = saksnummer,
-                    journalpostOppdatertTidspunkt = LocalDateTime.now(),
-                    journalpostFerdigstiltTidspunkt = LocalDateTime.now(),
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    journalpostOppdatertTidspunkt = nå(clock),
+                    journalpostFerdigstiltTidspunkt = nå(clock),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -184,13 +187,13 @@ class JournalpostServiceTest {
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalpostService =
-                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo)
+                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = "4567",
                     fnr = "12345678910",
                     brevkode = Brevkode.KLAGE.brevkode,
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 
@@ -241,15 +244,15 @@ class JournalpostServiceTest {
             runTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalpostService =
-                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo)
+                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = "4567",
                     fnr = "12345678910",
                     brevkode = Brevkode.KLAGE.brevkode,
                     saksnummer = saksnummer,
-                    journalpostOppdatertTidspunkt = LocalDateTime.now(),
-                    opprettet = LocalDateTime.now(),
-                    sistEndret = LocalDateTime.now(),
+                    journalpostOppdatertTidspunkt = nå(clock),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
                 )
                 journalposthendelseRepo.lagre(journalposthendelseDB)
 

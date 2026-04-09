@@ -15,6 +15,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import java.time.Clock
 
 /**
  * https://oppgave.dev.intern.nav.no/
@@ -23,6 +24,7 @@ class OppgaveClient(
     private val httpClient: HttpClient,
     basePath: String,
     private val getToken: suspend () -> AccessToken,
+    private val clock: Clock,
 ) {
     private val logger = KotlinLogging.logger {}
     private val apiPath = "$basePath/api/v1/oppgaver"
@@ -35,6 +37,7 @@ class OppgaveClient(
         val request = OpprettOppgaveRequest.opprettOppgaveRequestForPapirsoknad(
             fnr = fnr,
             journalpostId = journalpostId,
+            clock = clock,
         )
         return opprettOppgaveMedDuplikatkontroll(request, correlationId)
             .also { logger.info { "Opprettet behandle sak-oppgave med id $it for journalpostId $journalpostId" } }
@@ -50,6 +53,7 @@ class OppgaveClient(
             fnr = fnr,
             journalpostId = journalpostId,
             journalpostTittel = journalpostTittel,
+            clock = clock,
         )
         return opprettOppgaveMedDuplikatkontroll(request, correlationId)
             .also { logger.info { "Opprettet journalføringsoppgave med id $it for journalpostId $journalpostId" } }
@@ -58,6 +62,7 @@ class OppgaveClient(
     suspend fun opprettFordelingsoppgave(journalpostId: String, correlationId: CorrelationId): Int {
         val request = OpprettOppgaveRequest.opprettOppgaveRequestForFordelingsoppgave(
             journalpostId = journalpostId,
+            clock = clock,
         )
         return opprettOppgaveMedDuplikatkontroll(request, correlationId)
             .also { logger.info { "Opprettet fordelingsoppgave med id $it for journalpostId $journalpostId" } }

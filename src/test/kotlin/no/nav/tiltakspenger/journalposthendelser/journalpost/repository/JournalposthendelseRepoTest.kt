@@ -5,10 +5,14 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
 import no.nav.tiltakspenger.journalposthendelser.testutils.shouldBeCloseTo
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
+import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.Clock
 
 class JournalposthendelseRepoTest {
+    private val clock: Clock = TikkendeKlokke()
+
     @Test
     fun `kan lagre og hente journalposthendelse`() {
         withMigratedDb { testDataHelper ->
@@ -18,13 +22,13 @@ class JournalposthendelseRepoTest {
                 fnr = "12345678910",
                 brevkode = Brevkode.SØKNAD.brevkode,
                 saksnummer = "202509151003",
-                journalpostOppdatertTidspunkt = LocalDateTime.now().minusMinutes(3),
-                journalpostFerdigstiltTidspunkt = LocalDateTime.now().minusMinutes(2),
+                journalpostOppdatertTidspunkt = nå(clock).minusMinutes(3),
+                journalpostFerdigstiltTidspunkt = nå(clock).minusMinutes(2),
                 oppgaveId = "900000",
                 oppgavetype = OppgaveType.BEHANDLE_SAK,
-                oppgaveOpprettetTidspunkt = LocalDateTime.now().minusMinutes(1),
-                opprettet = LocalDateTime.now().minusMinutes(5),
-                sistEndret = LocalDateTime.now(),
+                oppgaveOpprettetTidspunkt = nå(clock).minusMinutes(1),
+                opprettet = nå(clock).minusMinutes(5),
+                sistEndret = nå(clock),
             )
 
             repo.lagre(journalposthendelseDB)
@@ -52,21 +56,21 @@ class JournalposthendelseRepoTest {
                 fnr = "12345678910",
                 brevkode = Brevkode.SØKNAD.brevkode,
                 saksnummer = "202509151003",
-                journalpostOppdatertTidspunkt = LocalDateTime.now().minusMinutes(3),
-                journalpostFerdigstiltTidspunkt = LocalDateTime.now().minusMinutes(2),
+                journalpostOppdatertTidspunkt = nå(clock).minusMinutes(3),
+                journalpostFerdigstiltTidspunkt = nå(clock).minusMinutes(2),
                 oppgaveId = null,
                 oppgavetype = null,
                 oppgaveOpprettetTidspunkt = null,
-                opprettet = LocalDateTime.now().minusMinutes(5),
-                sistEndret = LocalDateTime.now().minusMinutes(2),
+                opprettet = nå(clock).minusMinutes(5),
+                sistEndret = nå(clock).minusMinutes(2),
             )
             repo.lagre(journalposthendelseDB)
 
             val oppdatertJournalposthendelseDB = journalposthendelseDB.copy(
                 oppgaveId = "900000",
                 oppgavetype = OppgaveType.BEHANDLE_SAK,
-                oppgaveOpprettetTidspunkt = LocalDateTime.now().minusMinutes(1),
-                sistEndret = LocalDateTime.now(),
+                oppgaveOpprettetTidspunkt = nå(clock).minusMinutes(1),
+                sistEndret = nå(clock),
             )
             repo.lagre(oppdatertJournalposthendelseDB)
 

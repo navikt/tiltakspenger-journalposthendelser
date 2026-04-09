@@ -8,6 +8,8 @@ import io.ktor.server.netty.Netty
 import io.ktor.util.AttributeKey
 import no.nav.tiltakspenger.journalposthendelser.context.ApplicationContext
 import no.nav.tiltakspenger.journalposthendelser.routes.setupRoutes
+import no.nav.tiltakspenger.libs.tid.zoneIdOslo
+import java.time.Clock
 
 fun main() {
     System.setProperty("logback.configurationFile", Configuration.logbackConfigFile)
@@ -19,8 +21,9 @@ fun main() {
 
 fun start(
     log: KLogger,
+    clock: Clock = Clock.system(zoneIdOslo),
     port: Int = Configuration.applicationHttpPort,
-    applicationContext: ApplicationContext = ApplicationContext(log),
+    applicationContext: ApplicationContext = ApplicationContext(clock),
 ) {
     Thread.setDefaultUncaughtExceptionHandler { _, e ->
         log.error(e) { e.message }
