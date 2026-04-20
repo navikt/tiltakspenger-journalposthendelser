@@ -13,6 +13,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.JournalpostId
 
 /**
  * Dokumentasjon for Dokarkiv
@@ -30,7 +31,7 @@ class DokarkivClient(
     private val apiPath = "$basePath/rest/journalpostapi/v1/journalpost"
 
     suspend fun knyttSakTilJournalpost(
-        journalpostId: String,
+        journalpostId: JournalpostId,
         saksnummer: String,
         fnr: String,
         gjelderPapirsoknad: Boolean,
@@ -66,7 +67,7 @@ class DokarkivClient(
     }
 
     suspend fun ferdigstillJournalpost(
-        journalpostId: String,
+        journalpostId: JournalpostId,
         correlationId: CorrelationId,
     ) {
         val httpResponse = httpClient.patch("$apiPath/$journalpostId/ferdigstill") {

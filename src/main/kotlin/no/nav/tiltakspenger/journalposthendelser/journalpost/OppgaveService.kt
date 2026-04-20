@@ -6,6 +6,7 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.Oppgav
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.common.nå
 import java.time.Clock
 
@@ -90,7 +91,7 @@ class OppgaveService(
     }
 
     suspend fun finnesApenOppgave(
-        journalpostId: String,
+        journalpostId: JournalpostId,
         correlationId: CorrelationId,
     ): Boolean {
         val oppgaveResponse = oppgaveClient.finnOppgave(

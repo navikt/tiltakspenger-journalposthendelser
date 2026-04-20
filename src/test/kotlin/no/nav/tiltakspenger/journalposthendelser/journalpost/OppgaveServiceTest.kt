@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.Oppgav
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.BeforeEach
@@ -21,7 +22,7 @@ import java.time.Clock
 
 class OppgaveServiceTest {
     private val oppgaveClient = mockk<OppgaveClient>()
-    private val journalpostId = "4567"
+    private val journalpostId = JournalpostId("4567")
     private val fnr = "12345678910"
     private val saksnummer = "34567"
     private val oppgaveId = 9876

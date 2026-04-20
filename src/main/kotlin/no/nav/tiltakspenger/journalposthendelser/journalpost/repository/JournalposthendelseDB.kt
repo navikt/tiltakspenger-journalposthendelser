@@ -2,10 +2,11 @@ package no.nav.tiltakspenger.journalposthendelser.journalpost.repository
 
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import java.time.LocalDateTime
 
 data class JournalposthendelseDB(
-    val journalpostId: String,
+    val journalpostId: JournalpostId,
     val fnr: String? = null,
     val saksnummer: String? = null,
     val brevkode: String? = null,

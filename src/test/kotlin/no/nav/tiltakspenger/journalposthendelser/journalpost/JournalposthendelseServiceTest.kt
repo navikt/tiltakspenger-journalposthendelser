@@ -24,6 +24,7 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.Journalp
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.journalposthendelser.testutils.shouldBeCloseTo
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.BeforeEach
@@ -37,7 +38,7 @@ class JournalposthendelseServiceTest {
     private val saksbehandlingApiClient = mockk<SaksbehandlingApiClient>()
     private val dokarkivClient = mockk<DokarkivClient>(relaxed = true)
     private val oppgaveClient = mockk<OppgaveClient>()
-    private val journalpostId = "4567"
+    private val journalpostId = JournalpostId("4567")
     private val fnr = "12345678910"
     private val saksnummer = "34567"
     private val oppgaveId = 9876
@@ -50,7 +51,7 @@ class JournalposthendelseServiceTest {
         hendelsesId = "hendelseId",
         versjon = 1,
         hendelsesType = "JournalpostMottatt",
-        journalpostId = journalpostId,
+        journalpostId = journalpostId.toString(),
         journalpostStatus = journalpostStatus,
         temaGammelt = null,
         temaNytt = "IND",
@@ -339,7 +340,7 @@ class JournalposthendelseServiceTest {
     }
 
     private fun getJournalpostMetadata(
-        journalpostId: String = this.journalpostId,
+        journalpostId: JournalpostId = this.journalpostId,
         brukerId: String? = fnr,
         brukerIdType: BrukerIdType? = BrukerIdType.FNR,
         erJournalfort: Boolean = false,

@@ -13,6 +13,7 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandling
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.BeforeEach
@@ -39,7 +40,7 @@ class JournalpostServiceTest {
                 val journalpostService =
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
-                    journalpostId = "4567",
+                    journalpostId = JournalpostId("4567"),
                     fnr = "12345678910",
                     brevkode = Brevkode.SØKNAD.brevkode,
                     opprettet = nå(clock),
@@ -96,7 +97,7 @@ class JournalpostServiceTest {
                 val journalpostService =
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
-                    journalpostId = "4567",
+                    journalpostId = JournalpostId("4567"),
                     fnr = "12345678910",
                     brevkode = Brevkode.SØKNAD.brevkode,
                     saksnummer = saksnummer,
@@ -142,7 +143,7 @@ class JournalpostServiceTest {
                 val journalpostService =
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
-                    journalpostId = "4567",
+                    journalpostId = JournalpostId("4567"),
                     fnr = "12345678910",
                     brevkode = Brevkode.SØKNAD.brevkode,
                     saksnummer = saksnummer,
@@ -189,7 +190,7 @@ class JournalpostServiceTest {
                 val journalpostService =
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
-                    journalpostId = "4567",
+                    journalpostId = JournalpostId("4567"),
                     fnr = "12345678910",
                     brevkode = Brevkode.KLAGE.brevkode,
                     opprettet = nå(clock),
@@ -246,7 +247,7 @@ class JournalpostServiceTest {
                 val journalpostService =
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
-                    journalpostId = "4567",
+                    journalpostId = JournalpostId("4567"),
                     fnr = "12345678910",
                     brevkode = Brevkode.KLAGE.brevkode,
                     saksnummer = saksnummer,

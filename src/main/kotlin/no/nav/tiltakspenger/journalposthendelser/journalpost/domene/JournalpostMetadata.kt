@@ -1,10 +1,11 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost.domene
 
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.Bruker
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import java.time.LocalDateTime
 
 data class JournalpostMetadata(
-    val journalpostId: String,
+    val journalpostId: JournalpostId,
     val bruker: Bruker,
     val erJournalfort: Boolean,
     val datoOpprettet: LocalDateTime?,

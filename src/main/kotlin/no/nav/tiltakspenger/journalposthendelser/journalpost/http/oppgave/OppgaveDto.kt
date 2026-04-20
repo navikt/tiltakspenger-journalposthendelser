@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave
 
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -20,11 +21,11 @@ data class OpprettOppgaveRequest(
     companion object {
         fun opprettOppgaveRequestForPapirsoknad(
             fnr: String,
-            journalpostId: String,
+            journalpostId: JournalpostId,
             clock: Clock,
         ) = OpprettOppgaveRequest(
             personident = fnr,
-            journalpostId = journalpostId,
+            journalpostId = journalpostId.toString(),
             beskrivelse = "Ny søknad om tiltakspenger mottatt på papir. Behandles i ny løsning.",
             oppgavetype = OppgaveType.BEHANDLE_SAK.kode,
             aktivDato = LocalDate.now(clock),
@@ -32,23 +33,23 @@ data class OpprettOppgaveRequest(
 
         fun opprettOppgaveRequestForJournalforingsoppgave(
             fnr: String,
-            journalpostId: String,
+            journalpostId: JournalpostId,
             journalpostTittel: String,
             clock: Clock,
         ) = OpprettOppgaveRequest(
             personident = fnr,
-            journalpostId = journalpostId,
+            journalpostId = journalpostId.toString(),
             beskrivelse = journalpostTittel,
             oppgavetype = OppgaveType.JOURNALFORING.kode,
             aktivDato = LocalDate.now(clock),
         )
 
         fun opprettOppgaveRequestForFordelingsoppgave(
-            journalpostId: String,
+            journalpostId: JournalpostId,
             clock: Clock,
         ) = OpprettOppgaveRequest(
             personident = null,
-            journalpostId = journalpostId,
+            journalpostId = journalpostId.toString(),
             beskrivelse = null,
             oppgavetype = OppgaveType.FORDELING.kode,
             aktivDato = LocalDate.now(clock),

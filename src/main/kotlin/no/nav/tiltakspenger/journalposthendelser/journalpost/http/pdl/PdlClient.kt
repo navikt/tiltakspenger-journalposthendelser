@@ -13,6 +13,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import no.nav.tiltakspenger.journalposthendelser.infra.graphql.GraphQLResponse
 import no.nav.tiltakspenger.libs.common.AccessToken
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.json.objectMapper
 import tools.jackson.module.kotlin.readValue
 
@@ -33,7 +34,7 @@ class PdlClient(
             .readText()
             .replace(Regex("[\n\t]"), "")
 
-    suspend fun hentGjeldendeIdent(fnr: String, journalpostId: String): String? {
+    suspend fun hentGjeldendeIdent(fnr: String, journalpostId: JournalpostId): String? {
         val httpResponse = httpClient.post("$basePath/graphql") {
             bearerAuth(getToken().token)
             accept(ContentType.Application.Json)

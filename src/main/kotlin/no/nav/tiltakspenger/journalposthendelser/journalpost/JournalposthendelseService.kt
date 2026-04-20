@@ -10,6 +10,7 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.Journalførin
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.common.nå
 import java.time.Clock
 
@@ -24,7 +25,7 @@ class JournalposthendelseService(
     val log = KotlinLogging.logger {}
 
     suspend fun behandleJournalpostHendelse(hendelse: JournalføringshendelseFraKafka) {
-        val journalpostId = hendelse.journalpostId
+        val journalpostId = JournalpostId(hendelse.journalpostId)
         val correlationId = CorrelationId.generate()
         val journalpostMetadata = safJournalpostClient.getJournalpostMetadata(journalpostId)
             ?: throw IllegalStateException(
@@ -83,7 +84,7 @@ class JournalposthendelseService(
     }
 
     private suspend fun skalBehandleJournalposthendelse(
-        journalpostId: String,
+        journalpostId: JournalpostId,
         erJournalført: Boolean,
         journalposthendelseDB: JournalposthendelseDB?,
         correlationId: CorrelationId,

@@ -15,6 +15,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.CorrelationId
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import java.time.Clock
 
 /**
@@ -31,7 +32,7 @@ class OppgaveClient(
 
     suspend fun opprettOppgaveForPapirsoknad(
         fnr: String,
-        journalpostId: String,
+        journalpostId: JournalpostId,
         correlationId: CorrelationId,
     ): Int {
         val request = OpprettOppgaveRequest.opprettOppgaveRequestForPapirsoknad(
@@ -45,7 +46,7 @@ class OppgaveClient(
 
     suspend fun opprettJournalforingsoppgave(
         fnr: String,
-        journalpostId: String,
+        journalpostId: JournalpostId,
         journalpostTittel: String,
         correlationId: CorrelationId,
     ): Int {
@@ -59,7 +60,7 @@ class OppgaveClient(
             .also { logger.info { "Opprettet journalføringsoppgave med id $it for journalpostId $journalpostId" } }
     }
 
-    suspend fun opprettFordelingsoppgave(journalpostId: String, correlationId: CorrelationId): Int {
+    suspend fun opprettFordelingsoppgave(journalpostId: JournalpostId, correlationId: CorrelationId): Int {
         val request = OpprettOppgaveRequest.opprettOppgaveRequestForFordelingsoppgave(
             journalpostId = journalpostId,
             clock = clock,
@@ -73,7 +74,7 @@ class OppgaveClient(
         correlationId: CorrelationId,
     ): Int {
         val oppgaveResponse = finnOppgave(
-            journalpostId = opprettOppgaveRequest.journalpostId,
+            journalpostId = JournalpostId(opprettOppgaveRequest.journalpostId),
             oppgaveType = listOf(opprettOppgaveRequest.oppgavetype),
             correlationId = correlationId,
         )
@@ -106,7 +107,7 @@ class OppgaveClient(
     }
 
     suspend fun finnOppgave(
-        journalpostId: String,
+        journalpostId: JournalpostId,
         oppgaveType: List<String>,
         correlationId: CorrelationId,
     ): FinnOppgaveResponse {
@@ -116,7 +117,7 @@ class OppgaveClient(
                 oppgaveType.forEach {
                     parameters.append("oppgavetype", it)
                 }
-                parameters.append("journalpostId", journalpostId)
+                parameters.append("journalpostId", journalpostId.toString())
                 parameters.append("statuskategori", "AAPEN")
             }
             header("X-Correlation-ID", correlationId.toString())

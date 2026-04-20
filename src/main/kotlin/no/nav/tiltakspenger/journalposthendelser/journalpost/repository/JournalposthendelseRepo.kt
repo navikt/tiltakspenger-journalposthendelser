@@ -3,13 +3,14 @@ package no.nav.tiltakspenger.journalposthendelser.journalpost.repository
 import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 
 class JournalposthendelseRepo(
     private val sessionFactory: PostgresSessionFactory,
 ) {
     fun hent(
-        journalpostId: String,
+        journalpostId: JournalpostId,
     ): JournalposthendelseDB? {
         return sessionFactory.withSession { session ->
             session.run(
@@ -21,7 +22,7 @@ class JournalposthendelseRepo(
                     where journalpost_id = :journalpost_id;
                     """.trimIndent(),
                     mapOf(
-                        "journalpost_id" to journalpostId,
+                        "journalpost_id" to journalpostId.toString(),
                     ),
                 ).map { fromRow(it) }.asSingle,
             )
@@ -36,7 +37,7 @@ class JournalposthendelseRepo(
                 queryOf(
                     lagreJournalposthendelseSql,
                     mapOf(
-                        "journalpost_id" to journalposthendelseDB.journalpostId,
+                        "journalpost_id" to journalposthendelseDB.journalpostId.toString(),
                         "fnr" to journalposthendelseDB.fnr,
                         "saksnummer" to journalposthendelseDB.saksnummer,
                         "brevkode" to journalposthendelseDB.brevkode,
@@ -55,7 +56,7 @@ class JournalposthendelseRepo(
 
     private fun fromRow(row: Row): JournalposthendelseDB {
         return JournalposthendelseDB(
-            journalpostId = (row.string("journalpost_id")),
+            journalpostId = JournalpostId(row.string("journalpost_id")),
             fnr = row.stringOrNull("fnr"),
             saksnummer = row.stringOrNull("saksnummer"),
             brevkode = row.stringOrNull("brevkode"),

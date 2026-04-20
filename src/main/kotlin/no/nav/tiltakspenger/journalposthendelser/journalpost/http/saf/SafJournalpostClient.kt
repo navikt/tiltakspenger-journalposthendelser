@@ -11,6 +11,7 @@ import io.ktor.http.isSuccess
 import no.nav.tiltakspenger.journalposthendelser.infra.graphql.GraphQLResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
 import no.nav.tiltakspenger.libs.common.AccessToken
+import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.json.objectMapper
 import tools.jackson.module.kotlin.readValue
 import java.time.LocalDateTime
@@ -33,14 +34,14 @@ class SafJournalpostClient(
             .replace(Regex("[\n\t]"), "")
 
     suspend fun getJournalpostMetadata(
-        journalpostId: String,
+        journalpostId: JournalpostId,
     ): JournalpostMetadata? {
         val accessToken = getToken().token
 
         val findJournalpostRequest =
             FindJournalpostRequest(
                 query = journalPostQuery,
-                variables = Variables(journalpostId),
+                variables = Variables(journalpostId.toString()),
             )
 
         val httpResponse =
@@ -49,7 +50,7 @@ class SafJournalpostClient(
                     setBody(findJournalpostRequest)
                     headers {
                         append(HttpHeaders.Authorization, "Bearer $accessToken")
-                        append("X-Correlation-ID", journalpostId)
+                        append("X-Correlation-ID", journalpostId.toString())
                         append(HttpHeaders.ContentType, "application/json")
                     }
                 }
@@ -111,7 +112,7 @@ class SafJournalpostClient(
 
     fun finnBrevkodeForPdf(
         dokumentListe: List<Dokument>?,
-        journalpostId: String,
+        journalpostId: JournalpostId,
     ): String? {
         val dokumenter = dokumentListe?.filter {
             it.dokumentvarianter.any { variant -> variant.variantformat == Variantformat.ARKIV }
