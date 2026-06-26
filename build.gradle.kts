@@ -1,7 +1,7 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-val jvmVersion = JvmTarget.JVM_21
+val jvmVersion = JvmTarget.JVM_25
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
 val felleslibVersion = "0.0.827"
