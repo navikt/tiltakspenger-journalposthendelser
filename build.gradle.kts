@@ -12,7 +12,7 @@ val caffeineVersion = "3.2.4"
 val mockkVersion = "1.14.11"
 val prometeusVersion = "1.17.0"
 val testContainersVersion = "2.0.5"
-val kotestVersion = "6.1.11"
+val kotestVersion = "6.2.1"
 
 fun isNonStable(version: String): Boolean {
     val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
@@ -25,7 +25,7 @@ plugins {
     application
     kotlin("jvm") version "2.4.0"
     kotlin("plugin.serialization") version "2.4.0"
-    id("com.diffplug.spotless") version "8.6.0"
+    id("com.diffplug.spotless") version "8.7.0"
     id("com.github.ben-manes.versions") version "0.54.0"
     // https://github.com/androa/gradle-plugin-avro
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
@@ -84,8 +84,8 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson3:${ktorVersion}")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:12.8.1")
-    implementation("com.zaxxer:HikariCP:7.0.2")
+    implementation("org.flywaydb:flyway-database-postgresql:12.9.0")
+    implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.postgresql:postgresql:42.7.11")
     implementation("com.github.seratch:kotliquery:1.9.1")
 
