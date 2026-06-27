@@ -6,8 +6,8 @@ ENV LANG='nb_NO.UTF-8'
 
 WORKDIR /app
 
-COPY build/install/tiltakspenger-journalposthendelser/lib/*.jar ./
+COPY --chmod=0755 build/install/tiltakspenger-journalposthendelser/lib/*.jar /app/lib/
 
 USER nobody
 
-CMD ["tiltakspenger-journalposthendelser.jar"]
+ENTRYPOINT ["java", "-cp", "/app/lib/*", "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"]

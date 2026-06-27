@@ -58,6 +58,13 @@ dependencies {
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation(kotlin("stdlib"))
+
+    // Align all io.netty:* to a single version. r2dbc-postgresql/reactor-netty (transitiv via
+    // persistering-infrastruktur) drar inn netty 4.1.x, mens ktor-server-netty bruker 4.2.x.
+    // Uten dette havner både netty-codec (4.1) og netty-codec-base (4.2) på classpath med
+    // duplikate baseklasser (ByteToMessageDecoder m.fl.), som med `-cp lib/*` lastes i feil
+    // rekkefølge og brekker HTTP-pipelinen.
+    implementation(platform("io.netty:netty-bom:4.2.12.Final"))
     implementation("ch.qos.logback:logback-classic:1.5.34")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("org.jetbrains:annotations:26.1.0")
@@ -148,18 +155,6 @@ tasks {
             // We only want to log failed and skipped tests when running Gradle.
             events("skipped", "failed")
             exceptionFormat = TestExceptionFormat.FULL
-        }
-    }
-
-    jar {
-        dependsOn(configurations.runtimeClasspath)
-
-        manifest {
-            attributes["Main-Class"] = mainClassFile
-            attributes["Class-Path"] =
-                configurations.runtimeClasspath
-                    .get()
-                    .joinToString(separator = " ") { file -> file.name }
         }
     }
 
