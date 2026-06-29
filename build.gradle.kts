@@ -67,7 +67,7 @@ dependencies {
     // Uten dette havner både netty-codec (4.1) og netty-codec-base (4.2) på classpath med
     // duplikate baseklasser (ByteToMessageDecoder m.fl.), som med `-cp lib/*` lastes i feil
     // rekkefølge og brekker HTTP-pipelinen.
-    implementation(platform("io.netty:netty-bom:4.2.12.Final"))
+    implementation(platform("io.netty:netty-bom:4.2.15.Final"))
     implementation("ch.qos.logback:logback-classic:1.5.34")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("org.jetbrains:annotations:26.1.0")
