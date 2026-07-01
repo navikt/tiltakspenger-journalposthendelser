@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearMocks
@@ -29,7 +30,6 @@ import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 
 class JournalposthendelseServiceTest {
@@ -82,7 +82,7 @@ class JournalposthendelseServiceTest {
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
-                assertThrows<IllegalStateException> {
+                shouldThrow<IllegalStateException> {
                     journalposthendelseService.behandleJournalpostHendelse(
                         journalføringshendelseFraKafka(),
                     )
