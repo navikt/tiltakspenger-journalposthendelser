@@ -10,9 +10,11 @@ import io.micrometer.core.instrument.Clock
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.prometheus.metrics.model.registry.PrometheusRegistry
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.Readiness
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.healthRoutes
 
-fun Application.setupRoutes() {
-    routing { healthRoutes() }
+fun Application.setupRoutes(readiness: Readiness) {
+    routing { healthRoutes(erKlar = readiness::erKlar) }
     metrics()
 }
 

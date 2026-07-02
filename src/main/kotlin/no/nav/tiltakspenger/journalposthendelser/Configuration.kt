@@ -27,6 +27,7 @@ object Configuration {
     val naisTokenIntrospectionEndpoint = getEnvVar("NAIS_TOKEN_INTROSPECTION_ENDPOINT")
     val naisTokenEndpoint = getEnvVar("NAIS_TOKEN_ENDPOINT")
     val tokenExchangeEndpoint = getEnvVar("NAIS_TOKEN_EXCHANGE_ENDPOINT")
+    fun electorPath(): String = getEnvVar("ELECTOR_PATH")
 
     val jdbcUrl = getEnvVar("DB_JDBC_URL")
 
