@@ -35,6 +35,13 @@ spec:
         tier: db-f1-micro
         diskAutoresize: true
         pointInTimeRecovery: false
+        flags:
+          - name: "cloudsql.enable_pgaudit"
+            value: "on"
+          - name: "pgaudit.log"
+            value: "write,ddl,role"
+          - name: "pgaudit.log_parameter"
+            value: "on"
         databases:
           - name: journalposthendelser
             envVarPrefix: DB
