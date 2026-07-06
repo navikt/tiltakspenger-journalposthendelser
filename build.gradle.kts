@@ -109,7 +109,7 @@ dependencies {
     // Test
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("com.lemonappdev:konsist:0.17.3")
-    testImplementation(platform("org.junit:junit-bom:6.1.0"))
+    testImplementation(platform("org.junit:junit-bom:6.1.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("io.mockk:mockk:${mockkVersion}")
     testImplementation("io.mockk:mockk-dsl-jvm:${mockkVersion}")
