@@ -18,7 +18,14 @@ import no.nav.tiltakspenger.libs.json.objectMapper
 import tools.jackson.module.kotlin.readValue
 
 /**
- * https://pdl-docs.ansatt.nav.no/ekstern/index.html
+ * HTTP-klient for PDL (persondataløsningen) sitt GraphQL-API.
+ *
+ * Kildekode: https://github.com/navikt/pdl
+ * Dokumentasjon: https://pdl-docs.ansatt.nav.no/
+ * API-spec: https://github.com/navikt/pdl/blob/15bdc571f0357f97f524dc496fb16217ff4aa94d/apps/api/src/main/resources/schemas/pdl.graphqls#L17 og https://pdl-playground.dev.intern.nav.no/ og https://pdl-pip-api.intern.dev.nav.no/swagger-ui/index.html (Swagger)
+ * Slack: #pdl
+ * Teamkatalog: https://teamkatalogen.nav.no/team/034cbcd2-ac28-4e2e-88c8-345945933f70
+ *
  * Spørringen henter ikke historiske identer, kun gjeldende.
  */
 class PdlClient(

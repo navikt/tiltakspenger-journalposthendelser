@@ -16,9 +16,13 @@ import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.JournalpostId
 
 /**
- * Dokumentasjon for Dokarkiv
- * https://confluence.adeo.no/spaces/BOA/pages/320340890/journalpostapi
- * https://dokarkiv-q2.dev-fss-pub.nais.io/swagger-ui/index.html
+ * HTTP-klient for dokarkiv sitt journalpostapi.
+ *
+ * Kildekode: https://github.com/navikt/dokarkiv
+ * Dokumentasjon: https://confluence.adeo.no/display/BOA/dokarkiv og https://confluence.adeo.no/display/BOA/opprettJournalpost
+ * API-spec: https://dokarkiv.dev.intern.nav.no/swagger-ui/index.html
+ * Slack: #team-dokumentløsninger (https://nav-it.slack.com/archives/C6W9E5GPJ)
+ * Teamkatalog: https://teamkatalogen.nav.no/team/f3388fcd-898e-40da-8d02-0bf1e3a79120
  *
  * For å kunne ferdigstille journalpost må journalposten være knyttet til en sak.
  */

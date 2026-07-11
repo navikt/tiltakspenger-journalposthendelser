@@ -19,7 +19,13 @@ import no.nav.tiltakspenger.libs.common.JournalpostId
 import java.time.Clock
 
 /**
- * https://oppgave.dev.intern.nav.no/
+ * HTTP-klient for oppgave-API-et (opprettelse og søk av oppgaver).
+ *
+ * Kildekode: https://github.com/navikt/oppgave
+ * Dokumentasjon: https://confluence.adeo.no/spaces/BOA/pages/791031394/dokarkiv+tjenesteoversikt og https://kodeverk-web.intern.nav.no/kodeverk/Oppgavetyper
+ * API-spec: https://oppgave.intern.dev.nav.no/ (Swagger)
+ * Slack: #team-oppgavehåndtering
+ * Teamkatalog: https://teamkatalogen.nav.no/team/1672d05d-46ed-4406-a3a4-8343db75c285
  */
 class OppgaveClient(
     private val httpClient: HttpClient,

@@ -17,8 +17,13 @@ import tools.jackson.module.kotlin.readValue
 import java.time.LocalDateTime
 
 /**
- * Dokumentasjon for SAF
- * https://confluence.adeo.no/x/fY5zEg
+ * HTTP-klient for SAF (sak- og arkivfasade) sitt GraphQL-API.
+ *
+ * Kildekode: https://github.com/navikt/saf
+ * Dokumentasjon: https://confluence.adeo.no/display/BOA/saf
+ * API-spec: -
+ * Slack: #team-dokumentløsninger (https://nav-it.slack.com/archives/C6W9E5GPJ)
+ * Teamkatalog: https://teamkatalogen.nav.no/team/f3388fcd-898e-40da-8d02-0bf1e3a79120
  */
 class SafJournalpostClient(
     private val httpClient: HttpClient,
