@@ -69,7 +69,7 @@ dependencies {
     // duplikate baseklasser (ByteToMessageDecoder m.fl.), som med `-cp lib/*` lastes i feil
     // rekkefølge og brekker HTTP-pipelinen.
     implementation(platform("io.netty:netty-bom:4.2.16.Final"))
-    implementation("ch.qos.logback:logback-classic:1.5.36")
+    implementation("ch.qos.logback:logback-classic:1.5.37")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("org.jetbrains:annotations:26.1.0")
     implementation("com.natpryce:konfig:1.6.10.0")
