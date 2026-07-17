@@ -11,7 +11,8 @@ Vi ønsker å holde oss på en **LTS-versjon** av Java (f.eks. 17, 21, 25). Unng
 Når Java-versjonen skal endres må følgende steder oppdateres samtidig:
 
 - `build.gradle.kts` – `jvmVersion` (`JvmTarget.JVM_XX`), som styrer kompileringsmålet (target).
-- `Dockerfile` – `FROM gcr.io/distroless/javaXX-debianYY` (runtime-image). Sjekk at en tilsvarende tag finnes på [distroless](https://github.com/GoogleContainerTools/distroless).
+- `Dockerfile` – `FROM gcr.io/distroless/javaXX-debianYY` (runtime-image).
+  Sjekk at en tilsvarende tag finnes på [distroless](https://github.com/GoogleContainerTools/distroless).
 - `.github/workflows/.test-and-build.yml` – `java-version`.
 - `.github/workflows/codeql.yml` – `java-version`.
 - `.github/workflows/dependabot-auto-merge.yml` – `java-version`.

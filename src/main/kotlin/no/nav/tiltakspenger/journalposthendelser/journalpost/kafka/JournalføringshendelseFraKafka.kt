@@ -9,10 +9,12 @@ import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
  * @param hendelsesType En av: JournalpostMottatt, TemaEndret, EndeligJournalført, JournalpostUtgått
  * @param journalpostStatus En av:
  *   - MOTTATT: Dokumenta på journalposten er registrert i arkivet, men ikkje journalført/ferdigstilt enno.
- *   - JOURNALFOERT	Journalposten er ferdigstilt, og ansvaret for vidare handsaming er overført til fagsystemet. Journalen er låst for vidare endringar.
+ *   - JOURNALFOERT	Journalposten er ferdigstilt, og ansvaret for vidare handsaming er overført til fagsystemet.
+ *     Journalen er låst for vidare endringar.
  *   - UKJENT_BRUKER Journalposten er tatt ut av sakshandsaming fordi det ikkje er mogleg å identifisere kven journalposten gjeld.
  *   - UTGAAR Journalposten er tatt ut av sakshandsaming grunna feil i samband med mottak eller journalføring.
- *   - OPPLASTING_DOKUMENT Journalposten er i ein midlertidig status på veg mot MOTTATT. NB: Statusen blir kun brukt på dagpengeområdet, og skal bli fasa ut.
+ *   - OPPLASTING_DOKUMENT Journalposten er i ein midlertidig status på veg mot MOTTATT.
+ *     NB: Statusen blir kun brukt på dagpengeområdet, og skal bli fasa ut.
  * @param temaGammelt Ved endring av tema vil denne innehalde før-verdi av tema (K_FAGOMRADE-kolonna i journalpost-tabellen).
  * @param temaNytt Gjeldande verdi for tema på journalposten.
  * @param mottaksKanal f.eks. NAV_NO

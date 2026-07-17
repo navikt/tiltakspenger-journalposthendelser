@@ -14,8 +14,7 @@ import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
 import org.apache.kafka.common.serialization.StringDeserializer
 
 /**
- * Dokumentasjon for Joarkhendelser
- * https://confluence.adeo.no/x/Ix-DGQ
+ * Dokumentasjon for Joarkhendelser https://confluence.adeo.no/x/Ix-DGQ
  */
 class JournalposthendelseConsumer(
     topic: String,

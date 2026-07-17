@@ -108,7 +108,8 @@ dependencies {
 
     // Test
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("com.lemonappdev:konsist:0.17.3")
+    // Delte arkitekturregler; drar inn konsist transitivt (api-avhengighet). Egen versjon inntil felleslibVersion bumpes.
+    testImplementation("com.github.navikt.tiltakspenger-libs:konsist-regler:0.0.895")
     testImplementation(platform("org.junit:junit-bom:6.1.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("io.mockk:mockk:${mockkVersion}")
