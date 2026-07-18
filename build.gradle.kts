@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
-val felleslibVersion = "0.0.863"
+val felleslibVersion = "0.0.20260718174757"
 val ktorVersion = "3.4.3"
 val confluentVersion = "8.1.1"
 val avroVersion = "1.12.1"
@@ -109,7 +109,7 @@ dependencies {
     // Test
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     // Delte arkitekturregler; drar inn konsist transitivt (api-avhengighet). Egen versjon inntil felleslibVersion bumpes.
-    testImplementation("com.github.navikt.tiltakspenger-libs:konsist-regler:0.0.20260718163611")
+    testImplementation("com.github.navikt.tiltakspenger-libs:konsist-regler:$felleslibVersion")
     testImplementation(platform("org.junit:junit-bom:6.1.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("io.mockk:mockk:${mockkVersion}")
