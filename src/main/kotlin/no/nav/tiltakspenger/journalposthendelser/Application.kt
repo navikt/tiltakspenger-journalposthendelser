@@ -18,12 +18,12 @@ fun main() {
 
     val log = KotlinLogging.logger {}
 
-    start(log = log)
+    start(log = log, clock = Clock.system(zoneIdOslo))
 }
 
 fun start(
     log: KLogger,
-    clock: Clock = Clock.system(zoneIdOslo),
+    clock: Clock,
     port: Int = Configuration.applicationHttpPort,
     isNais: Boolean = Configuration.isNais(),
     applicationContext: ApplicationContext = ApplicationContext(clock),
