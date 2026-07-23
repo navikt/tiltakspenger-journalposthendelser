@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
+import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -9,15 +10,19 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
+import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalposthendelseIkkeBehandlet
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.FinnOppgaveResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveClient
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
+import no.nav.tiltakspenger.journalposthendelser.testutils.tomHttpKlientMetadata
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -36,6 +41,111 @@ class OppgaveServiceTest {
         clearMocks(oppgaveClient)
         coEvery { oppgaveClient.finnOppgaver(any(), any(), any()) } returns FinnOppgaveResponse(antallTreffTotalt = 0, oppgaver = emptyList()).right()
         coEvery { oppgaveClient.opprettOppgave(any(), any()) } returns oppgaveId.right()
+    }
+
+    private fun uventetStatus() = HttpKlientError.UventetStatus(
+        statusCode = 500,
+        body = "{}",
+        metadata = tomHttpKlientMetadata(500),
+    )
+
+    @Test
+    fun `finnesApenOppgave - oppgavekallet feiler - returnerer JournalposthendelseIkkeBehandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { oppgaveClient.finnOppgaver(any(), any(), any()) } returns uventetStatus().left()
+                val oppgaveService = OppgaveService(oppgaveClient, testDataHelper.journalposthendelseRepo, clock)
+
+                oppgaveService.finnesApenOppgave(
+                    journalpostId,
+                    CorrelationId.generate(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
+            }
+        }
+    }
+
+    @Test
+    fun `opprettFordelingsoppgave - duplikatsjekken feiler - returnerer JournalposthendelseIkkeBehandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { oppgaveClient.finnOppgaver(any(), any(), any()) } returns uventetStatus().left()
+                val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
+                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo, clock)
+                val journalposthendelseDB = JournalposthendelseDB(
+                    journalpostId = journalpostId,
+                    brevkode = Brevkode.KLAGE.brevkode,
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
+                )
+                journalposthendelseRepo.lagre(journalposthendelseDB)
+
+                oppgaveService.opprettFordelingsoppgave(
+                    journalposthendelseDB,
+                    CorrelationId.generate(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
+
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgave(any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `opprettFordelingsoppgave - apen oppgave finnes fra for - gjenbruker oppgave-iden`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { oppgaveClient.finnOppgaver(any(), any(), any()) } returns FinnOppgaveResponse(
+                    antallTreffTotalt = 1,
+                    oppgaver = listOf(OppgaveResponse(oppgaveId)),
+                ).right()
+                val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
+                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo, clock)
+                val journalposthendelseDB = JournalposthendelseDB(
+                    journalpostId = journalpostId,
+                    brevkode = Brevkode.KLAGE.brevkode,
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
+                )
+                journalposthendelseRepo.lagre(journalposthendelseDB)
+
+                oppgaveService.opprettFordelingsoppgave(
+                    journalposthendelseDB,
+                    CorrelationId.generate(),
+                )
+
+                val journalposthendelseFraDB = journalposthendelseRepo.hent(journalposthendelseDB.journalpostId)
+                journalposthendelseFraDB?.oppgaveId shouldBe oppgaveId.toString()
+                journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.FORDELING
+
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgave(any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `opprettJournalforingsoppgave - opprettelsen feiler - returnerer JournalposthendelseIkkeBehandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { oppgaveClient.opprettOppgave(any(), any()) } returns uventetStatus().left()
+                val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
+                val oppgaveService = OppgaveService(oppgaveClient, journalposthendelseRepo, clock)
+                val journalposthendelseDB = JournalposthendelseDB(
+                    journalpostId = journalpostId,
+                    fnr = fnr,
+                    brevkode = Brevkode.KLAGE.brevkode,
+                    saksnummer = saksnummer,
+                    journalpostOppdatertTidspunkt = nå(clock),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
+                )
+                journalposthendelseRepo.lagre(journalposthendelseDB)
+
+                oppgaveService.opprettJournalforingsoppgave(
+                    journalposthendelseDB,
+                    tittel,
+                    CorrelationId.generate(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
+            }
+        }
     }
 
     @Test

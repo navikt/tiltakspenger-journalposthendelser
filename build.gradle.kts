@@ -1,3 +1,5 @@
+import kotlinx.kover.gradle.plugin.dsl.AggregationType
+import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
@@ -27,6 +29,7 @@ plugins {
     id("com.github.ben-manes.versions") version "0.54.0"
     // https://github.com/androa/gradle-plugin-avro
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
+    id("org.jetbrains.kotlinx.kover") version "0.9.8"
 }
 
 repositories {
@@ -118,10 +121,58 @@ dependencies {
     testImplementation("io.mockk:mockk-dsl-jvm:${mockkVersion}")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.ktor:ktor-server-test-host:${ktorVersion}")
 
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:testcontainers-postgresql:$testContainersVersion")
+}
+
+// --- Kover --------------------------------------------------------------------
+// Holder 100 % linjedekning for all produksjonskode utenom eksplisitte unntak.
+// Dekningen rapporteres som HTML/XML på `check`, og bygget feiler hvis terskelen ikke holdes.
+kover {
+    reports {
+        total {
+            filters {
+                excludes {
+                    classes(
+                        // Generert Avro-kode fra src/main/avro – ikke vår kode, testes ikke.
+                        "no.nav.joarkjournalfoeringhendelser.*",
+                        // TODO jah: Bootstrap som starter selve serveren (main/start); vurder å teste start() ved å gjøre startApp-oppsettet verifiserbart uten å blokkere.
+                        "no.nav.tiltakspenger.journalposthendelser.ApplicationKt",
+                        // TODO jah: Wiring av produksjonsavhengigheter; krever reell db-url via Configuration ved instansiering. Vurder å gjøre datasourcen injiserbar slik at konteksten kan instansieres i test.
+                        "no.nav.tiltakspenger.journalposthendelser.context.ApplicationContext",
+                    )
+                }
+            }
+            html {
+                onCheck = true
+            }
+            xml {
+                onCheck = true
+            }
+            verify {
+                onCheck = true
+                rule("all produksjonskode utenom eksplisitte unntak skal ha 100 % linjedekning") {
+                    bound {
+                        minValue = 100
+                        coverageUnits = CoverageUnit.LINE
+                        aggregationForGroup = AggregationType.COVERED_PERCENTAGE
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.named("koverXmlReport") {
+    val xmlReport = layout.buildDirectory.file("reports/kover/report.xml")
+    doLast {
+        val xml = xmlReport.get().asFile
+        val classCount = xml.readText().split("<class ").size - 1
+        if (classCount == 0) throw GradleException("Kover-rapporten inneholder ingen klasser – ekskluderingsfilteret er trolig for grådig.")
+    }
 }
 
 spotless {

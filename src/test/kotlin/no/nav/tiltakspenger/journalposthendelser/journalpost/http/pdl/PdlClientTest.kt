@@ -100,6 +100,20 @@ internal class PdlClientTest {
     }
 
     @Test
+    fun `uventet status gir KallFeilet etter retry`() = runTest {
+        val transport = FakeHttpTransport()
+        // Retry.Fast(maksForsøk = 4) konsumerer ett køet svar per forsøk for retryable statuser som 500.
+        repeat(4) { transport.leggIKøStatus(500, body = "kaboom") }
+
+        val feil = klient("http://pdl", transport).hentGjeldendeIdent(fnr)
+            .shouldBeInstanceOf<arrow.core.Either.Left<KanIkkeHenteIdent>>()
+            .value
+
+        feil.shouldBeInstanceOf<KanIkkeHenteIdent.KallFeilet>()
+        transport.mottatteKall.size shouldBe 4
+    }
+
+    @Test
     fun `server_error fra graphql gir GraphQLFeil`() = runTest {
         val transport = FakeHttpTransport()
         transport.leggIKøJson(

@@ -30,7 +30,7 @@ internal class SafJournalpostClientTest {
         {
           "data": {
             "journalpost": {
-              "avsenderMottaker": null,
+              "avsenderMottaker": { "id": "12345678910", "navn": "Test Testesen" },
               "bruker": { "id": "12345678910", "type": "FNR" },
               "datoOpprettet": "2024-01-02T03:04:05",
               "dokumenter": [
@@ -46,7 +46,7 @@ internal class SafJournalpostClientTest {
               "kanal": null,
               "kanalnavn": null,
               "opprettetAvNavn": null,
-              "sak": null,
+              "sak": { "fagsakId": "234", "fagsaksystem": "TILTAKSPENGER", "sakstype": "FAGSAK" },
               "skjerming": null,
               "tema": "IND",
               "temanavn": null,
@@ -108,7 +108,7 @@ internal class SafJournalpostClientTest {
     @Test
     fun `graphql-feil gir GraphQLFeil`() = runTest {
         val transport = FakeHttpTransport()
-        transport.leggIKøJson("""{"data": null, "errors": [{"message": "ingen tilgang", "locations": null, "path": null, "extensions": {"code": "forbidden", "classification": null}}]}""")
+        transport.leggIKøJson("""{"data": null, "errors": [{"message": "ingen tilgang", "locations": [{"line": "1", "column": "2"}], "path": null, "extensions": {"code": "forbidden", "classification": null}}]}""")
 
         val feil = klient("http://saf", transport).getJournalpostMetadata(journalpostId)
             .shouldBeInstanceOf<arrow.core.Either.Left<KanIkkeHenteJournalpost>>()

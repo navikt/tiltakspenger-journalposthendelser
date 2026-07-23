@@ -17,6 +17,7 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.FinnOp
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.pdl.KanIkkeHenteIdent
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.pdl.PdlClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.Bruker
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.BrukerIdType
@@ -32,9 +33,11 @@ import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
+import java.time.LocalDateTime
 
 class JournalposthendelseServiceTest {
     private val safJournalpostClient = mockk<SafJournalpostClient>()
@@ -90,6 +93,123 @@ class JournalposthendelseServiceTest {
                 journalposthendelseService.behandleJournalpostHendelse(
                     journalføringshendelseFraKafka(),
                 ) shouldBe JournalposthendelseIkkeBehandlet.left()
+            }
+        }
+    }
+
+    @Test
+    fun `behandleJournalpostHendelse - saf-kallet feiler - returnerer JournalposthendelseIkkeBehandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns
+                    KanIkkeHenteJournalpost.KallFeilet(uventetStatus()).left()
+                val journalposthendelseService = getJournalposthendelseService(testDataHelper.journalposthendelseRepo)
+
+                journalposthendelseService.behandleJournalpostHendelse(
+                    journalføringshendelseFraKafka(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
+            }
+        }
+    }
+
+    @Test
+    fun `behandleJournalpostHendelse - saf svarer med graphql-feil - returnerer JournalposthendelseIkkeBehandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns
+                    KanIkkeHenteJournalpost.GraphQLFeil(
+                        feilkoder = listOf("server_error"),
+                        httpKlientMetadata = tomHttpKlientMetadata(),
+                    ).left()
+                val journalposthendelseService = getJournalposthendelseService(testDataHelper.journalposthendelseRepo)
+
+                journalposthendelseService.behandleJournalpostHendelse(
+                    journalføringshendelseFraKafka(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
+            }
+        }
+    }
+
+    @Test
+    fun `behandleJournalpostHendelse - pdl-kallet feiler - returnerer JournalposthendelseIkkeBehandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata().right()
+                coEvery { pdlClient.hentGjeldendeIdent(any()) } returns
+                    KanIkkeHenteIdent.KallFeilet(uventetStatus()).left()
+                val journalposthendelseService = getJournalposthendelseService(testDataHelper.journalposthendelseRepo)
+
+                journalposthendelseService.behandleJournalpostHendelse(
+                    journalføringshendelseFraKafka(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
+
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgave(any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `behandleJournalpostHendelse - pdl svarer med graphql-feil - returnerer JournalposthendelseIkkeBehandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata().right()
+                coEvery { pdlClient.hentGjeldendeIdent(any()) } returns
+                    KanIkkeHenteIdent.GraphQLFeil(
+                        feilkoder = listOf("server_error"),
+                        httpKlientMetadata = tomHttpKlientMetadata(),
+                    ).left()
+                val journalposthendelseService = getJournalposthendelseService(testDataHelper.journalposthendelseRepo)
+
+                journalposthendelseService.behandleJournalpostHendelse(
+                    journalføringshendelseFraKafka(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
+
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgave(any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `behandleJournalpostHendelse - mangler datoOpprettet og brevkode - behandler og oppretter journalforingsoppgave`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(
+                    brevkode = null,
+                    datoOpprettet = null,
+                ).right()
+                val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
+                val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
+
+                journalposthendelseService.behandleJournalpostHendelse(journalføringshendelseFraKafka())
+
+                val journalposthendelseFraDB = journalposthendelseRepo.hent(journalpostId)
+                journalposthendelseFraDB shouldNotBe null
+                journalposthendelseFraDB?.brevkode shouldBe null
+                journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.JOURNALFORING
+
+                coVerify(exactly = 1) { oppgaveClient.opprettOppgave(match { it.oppgavetype == OppgaveType.JOURNALFORING.kode && it.personident == fnr }, any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `behandleJournalpostHendelse - meldekort - behandler og oppretter journalforingsoppgave`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(
+                    brevkode = Brevkode.MELDEKORT,
+                ).right()
+                val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
+                val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
+
+                journalposthendelseService.behandleJournalpostHendelse(journalføringshendelseFraKafka())
+
+                val journalposthendelseFraDB = journalposthendelseRepo.hent(journalpostId)
+                journalposthendelseFraDB shouldNotBe null
+                journalposthendelseFraDB?.brevkode shouldBe Brevkode.MELDEKORT.brevkode
+                journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.JOURNALFORING
+
+                coVerify(exactly = 1) { oppgaveClient.opprettOppgave(match { it.oppgavetype == OppgaveType.JOURNALFORING.kode && it.personident == fnr }, any()) }
             }
         }
     }
@@ -346,6 +466,7 @@ class JournalposthendelseServiceTest {
         brukerIdType: BrukerIdType? = BrukerIdType.FNR,
         erJournalfort: Boolean = false,
         brevkode: Brevkode? = Brevkode.SØKNAD,
+        datoOpprettet: LocalDateTime? = nå(clock).minusMinutes(2),
     ) =
         JournalpostMetadata(
             journalpostId = journalpostId,
@@ -354,10 +475,16 @@ class JournalposthendelseServiceTest {
                 type = brukerIdType,
             ),
             erJournalfort = erJournalfort,
-            datoOpprettet = nå(clock).minusMinutes(2),
+            datoOpprettet = datoOpprettet,
             brevkode = brevkode?.brevkode,
             tittel = tittel,
         )
+
+    private fun uventetStatus() = HttpKlientError.UventetStatus(
+        statusCode = 500,
+        body = "{}",
+        metadata = tomHttpKlientMetadata(500),
+    )
 
     private fun getJournalposthendelseService(journalposthendelseRepo: JournalposthendelseRepo) =
         JournalposthendelseService(

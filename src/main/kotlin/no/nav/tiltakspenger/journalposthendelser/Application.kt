@@ -47,7 +47,7 @@ fun start(
                     KafkaConsumerOppsett(
                         navn = "journalposthendelse-consumer",
                         start = { applicationContext.journalposthendelseConsumer.run() },
-                        stopp = {},
+                        stopp = { applicationContext.journalposthendelseConsumer.stop() },
                     ),
                 )
             } else {

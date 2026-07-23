@@ -47,4 +47,7 @@ class JournalposthendelseConsumer(
     }
 
     override fun run() = consumer.run()
+
+    /** Stopper consumeren og venter på at en pågående batch er ferdig behandlet og committet. */
+    fun stop() = consumer.stop()
 }

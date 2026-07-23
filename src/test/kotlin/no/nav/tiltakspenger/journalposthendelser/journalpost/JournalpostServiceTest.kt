@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
+import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -9,15 +10,18 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
+import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalposthendelseIkkeBehandlet
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.dokarkiv.DokarkivClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandlingapi.SaksbehandlingApiClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
+import no.nav.tiltakspenger.journalposthendelser.testutils.tomHttpKlientMetadata
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
 import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -35,6 +39,12 @@ class JournalpostServiceTest {
         coEvery { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) } returns Unit.right()
         coEvery { dokarkivClient.ferdigstillJournalpost(any()) } returns Unit.right()
     }
+
+    private fun uventetStatus() = HttpKlientError.UventetStatus(
+        statusCode = 500,
+        body = "{}",
+        metadata = tomHttpKlientMetadata(500),
+    )
 
     @Test
     fun `oppdaterEllerFerdigstillJournalpost - papirsoknad - oppdaterer og ferdigstiller`() {
@@ -233,6 +243,87 @@ class JournalpostServiceTest {
                         any(),
                     )
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `oppdaterEllerFerdigstillJournalpost - henting av saksnummer feiler - returnerer JournalposthendelseIkkeBehandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) } returns uventetStatus().left()
+                val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
+                val journalpostService =
+                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
+                val journalposthendelseDB = JournalposthendelseDB(
+                    journalpostId = JournalpostId("4567"),
+                    fnr = "12345678910",
+                    brevkode = Brevkode.SØKNAD.brevkode,
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
+                )
+                journalposthendelseRepo.lagre(journalposthendelseDB)
+
+                journalpostService.oppdaterEllerFerdigstillJournalpost(
+                    journalposthendelseDB,
+                    CorrelationId.generate(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
+
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `oppdaterEllerFerdigstillJournalpost - oppdatering i dokarkiv feiler - returnerer JournalposthendelseIkkeBehandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) } returns uventetStatus().left()
+                val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
+                val journalpostService =
+                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
+                val journalposthendelseDB = JournalposthendelseDB(
+                    journalpostId = JournalpostId("4567"),
+                    fnr = "12345678910",
+                    brevkode = Brevkode.SØKNAD.brevkode,
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
+                )
+                journalposthendelseRepo.lagre(journalposthendelseDB)
+
+                journalpostService.oppdaterEllerFerdigstillJournalpost(
+                    journalposthendelseDB,
+                    CorrelationId.generate(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
+
+                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `oppdaterEllerFerdigstillJournalpost - ferdigstilling i dokarkiv feiler - returnerer JournalposthendelseIkkeBehandlet`() {
+        withMigratedDb(runIsolated = true) { testDataHelper ->
+            runTest {
+                coEvery { dokarkivClient.ferdigstillJournalpost(any()) } returns uventetStatus().left()
+                val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
+                val journalpostService =
+                    JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
+                val journalposthendelseDB = JournalposthendelseDB(
+                    journalpostId = JournalpostId("4567"),
+                    fnr = "12345678910",
+                    brevkode = Brevkode.SØKNAD.brevkode,
+                    saksnummer = saksnummer,
+                    journalpostOppdatertTidspunkt = nå(clock),
+                    opprettet = nå(clock),
+                    sistEndret = nå(clock),
+                )
+                journalposthendelseRepo.lagre(journalposthendelseDB)
+
+                journalpostService.oppdaterEllerFerdigstillJournalpost(
+                    journalposthendelseDB,
+                    CorrelationId.generate(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
             }
         }
     }
