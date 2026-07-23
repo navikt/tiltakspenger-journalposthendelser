@@ -1,21 +1,24 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost.http.pdl
 
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.HttpClient
-import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.http.isSuccess
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.journalposthendelser.infra.graphql.GraphQLResponse
-import no.nav.tiltakspenger.libs.common.AccessToken
-import no.nav.tiltakspenger.libs.common.JournalpostId
-import no.nav.tiltakspenger.libs.json.objectMapper
-import tools.jackson.module.kotlin.readValue
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.NavHeadere
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.retry.Retry
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
+import java.net.URI
+import java.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * HTTP-klient for PDL (persondataløsningen) sitt GraphQL-API.
@@ -27,13 +30,31 @@ import tools.jackson.module.kotlin.readValue
  * Teamkatalog: https://teamkatalogen.nav.no/team/034cbcd2-ac28-4e2e-88c8-345945933f70
  *
  * Spørringen henter ikke historiske identer, kun gjeldende.
+ * Retryen replikerer den gamle ktor-klienten: fire forsøk totalt med konstant 1 s delay.
+ * retryIkkeIdempotente er satt fordi GraphQL-oppslaget går som POST, men er et rent leseoppslag uten sideeffekter.
+ *
+ * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class PdlClient(
-    private val httpClient: HttpClient,
-    private val basePath: String,
-    private val getToken: suspend () -> AccessToken,
+    baseUrl: String,
+    clock: Clock,
+    authTokenProvider: AuthTokenProvider,
+    connectTimeout: Duration = 5.seconds,
+    timeout: Duration = 10.seconds,
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) {
-    private val log = KotlinLogging.logger {}
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+            retry = Retry.Fast(maksForsøk = 4, delay = 1.seconds, retryIkkeIdempotente = true),
+        ),
+        transport = transport,
+    )
+
+    private val graphqlUri = URI.create("$baseUrl/graphql")
+
     private val hentIdenterQuery =
         PdlClient::class
             .java
@@ -41,47 +62,51 @@ class PdlClient(
             .readText()
             .replace(Regex("[\n\t]"), "")
 
-    suspend fun hentGjeldendeIdent(fnr: String, journalpostId: JournalpostId): String? {
-        val httpResponse = httpClient.post("$basePath/graphql") {
-            bearerAuth(getToken().token)
-            accept(ContentType.Application.Json)
-            contentType(ContentType.Application.Json)
-            header("Tema", "IND")
-            header("behandlingsnummer", "B470")
-            setBody(
-                HentIdenterRequest(
-                    query = hentIdenterQuery,
-                    variables = PdlVariables(
-                        ident = fnr,
-                    ),
-                ),
-            )
+    /**
+     * Henter gjeldende folkeregisterident (eller NPID) for [fnr].
+     * `Right(null)` betyr «fant ikke person» og håndteres som domeneutfall (fordelingsoppgave) av kalleren.
+     */
+    suspend fun hentGjeldendeIdent(fnr: String): Either<KanIkkeHenteIdent, String?> {
+        return httpKlient.postJson<GraphQLResponse<HentIdenterResponse>>(
+            uri = graphqlUri,
+            body = HentIdenterRequest(
+                query = hentIdenterQuery,
+                variables = PdlVariables(ident = fnr),
+            ),
+            headere = listOf(
+                NavHeadere.tema("IND"),
+                NavHeadere.behandlingsnummer("B470"),
+            ),
+            godta = Statusregel.Eksakt(200),
+        ).mapLeft {
+            KanIkkeHenteIdent.KallFeilet(it)
+        }.flatMap { respons ->
+            respons.body.tilGjeldendeIdent(respons.metadata)
         }
-        val responseBody = httpResponse.bodyAsText()
-        if (!httpResponse.status.isSuccess()) {
-            log.error { "Noe gikk galt ved kall til PDL for journalpostId $journalpostId: feilkode: ${httpResponse.status}, melding: $responseBody" }
-            throw RuntimeException("Noe gikk galt ved kall til PDL")
-        }
-        val hentIdenterResponse = objectMapper.readValue<GraphQLResponse<HentIdenterResponse>?>(responseBody)
+    }
 
-        if (hentIdenterResponse == null) {
-            log.error { "Kall til PDL feilet for journalpostId $journalpostId" }
-            return null
+    /**
+     * GraphQL svarer av design 200 OK på alle svar; funksjonelle feil ligger i errors-lista.
+     * `not_found`/`bad_request` betyr «fant ikke person» og gir `Right(null)`; øvrige feilkoder (`server_error` o.l.) er reelle feil og gir Left.
+     */
+    private fun GraphQLResponse<HentIdenterResponse>.tilGjeldendeIdent(
+        metadata: HttpKlientMetadata,
+    ): Either<KanIkkeHenteIdent, String?> {
+        val graphQLFeil = errors.orEmpty()
+        if (graphQLFeil.isNotEmpty()) {
+            return if (graphQLFeil.all { it.extensions?.code == "not_found" || it.extensions?.code == "bad_request" }) {
+                null.right()
+            } else {
+                KanIkkeHenteIdent.GraphQLFeil(
+                    feilkoder = graphQLFeil.map { it.extensions?.code ?: "ukjent" },
+                    httpKlientMetadata = metadata,
+                ).left()
+            }
         }
-        if (hentIdenterResponse.errors != null) {
-            hentIdenterResponse.errors.forEach { log.error { "PDL returnerte feilmelding: $it" } }
-            return null
-        }
-        if (hentIdenterResponse.data.hentIdenter == null || hentIdenterResponse.data.hentIdenter.identer.isEmpty()) {
-            log.error { "Fant ingen identer i PDL for journalpostId $journalpostId" }
-            return null
-        }
-        val gjeldendeIdent = hentIdenterResponse.data.hentIdenter.identer.firstOrNull {
-            it.gruppe == IdentGruppe.FOLKEREGISTERIDENT
-        } ?: hentIdenterResponse.data.hentIdenter.identer.firstOrNull {
-            it.gruppe == IdentGruppe.NPID
-        }
-        return gjeldendeIdent?.ident
+        val identer = data?.hentIdenter?.identer.orEmpty()
+        val gjeldendeIdent = identer.firstOrNull { it.gruppe == IdentGruppe.FOLKEREGISTERIDENT }
+            ?: identer.firstOrNull { it.gruppe == IdentGruppe.NPID }
+        return gjeldendeIdent?.ident.right()
     }
 }
 

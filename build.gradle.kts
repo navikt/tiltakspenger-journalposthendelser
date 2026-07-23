@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
-val felleslibVersion = "0.0.20260722143244"
+val felleslibVersion = "0.0.20260723155827"
 val ktorVersion = "3.4.3"
 val confluentVersion = "8.1.1"
 val avroVersion = "1.12.1"
@@ -57,7 +57,13 @@ dependencies {
     implementation("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:persistering-infrastruktur:$felleslibVersion")
     implementation("com.github.navikt.tiltakspenger-libs:texas:$felleslibVersion")
+    implementation("com.github.navikt.tiltakspenger-libs:httpklient-infrastruktur:$felleslibVersion")
     testImplementation("com.github.navikt.tiltakspenger-libs:persistering-test-common:$felleslibVersion")
+    testImplementation("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
+    testImplementation(testFixtures("com.github.navikt.tiltakspenger-libs:httpklient-infrastruktur:$felleslibVersion"))
+
+    // Brukes direkte i klient- og service-koden (Either); gjøres eksplisitt i stedet for å arves transitivt fra libs.
+    implementation("io.arrow-kt:arrow-core:2.2.3")
 
     // Lås versjonene på alle Kotlin-komponenter til samme versjon
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
@@ -78,10 +84,6 @@ dependencies {
     // Http
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-client-core:${ktorVersion}")
-    implementation("io.ktor:ktor-client-apache5:${ktorVersion}")
-    implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
-    implementation("io.ktor:ktor-client-logging:${ktorVersion}")
     implementation("io.ktor:ktor-http:${ktorVersion}")
     implementation("io.ktor:ktor-server-metrics-micrometer:${ktorVersion}")
 

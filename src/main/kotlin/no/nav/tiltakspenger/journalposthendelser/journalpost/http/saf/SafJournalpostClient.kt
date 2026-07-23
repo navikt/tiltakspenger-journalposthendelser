@@ -1,20 +1,27 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf
 
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.HttpClient
-import io.ktor.client.request.headers
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpHeaders
-import io.ktor.http.isSuccess
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.left
+import arrow.core.right
 import no.nav.tiltakspenger.journalposthendelser.infra.graphql.GraphQLResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
-import no.nav.tiltakspenger.libs.common.AccessToken
 import no.nav.tiltakspenger.libs.common.JournalpostId
-import no.nav.tiltakspenger.libs.json.objectMapper
-import tools.jackson.module.kotlin.readValue
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientMetadata
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.NavHeadere
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.retry.Retry
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
+import java.net.URI
+import java.time.Clock
 import java.time.LocalDateTime
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * HTTP-klient for SAF (sak- og arkivfasade) sitt GraphQL-API.
@@ -24,13 +31,33 @@ import java.time.LocalDateTime
  * API-spec: -
  * Slack: #team-dokumentløsninger (https://nav-it.slack.com/archives/C6W9E5GPJ)
  * Teamkatalog: https://teamkatalogen.nav.no/team/f3388fcd-898e-40da-8d02-0bf1e3a79120
+ *
+ * Timeoutene er arvet fra den gamle ktor-klientens «slow API»-variant (SAF kan være treg).
+ * Retryen replikerer den gamle ktor-klienten: fire forsøk totalt med konstant 1 s delay.
+ * retryIkkeIdempotente er satt fordi GraphQL-oppslaget går som POST, men er et rent leseoppslag uten sideeffekter.
+ *
+ * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class SafJournalpostClient(
-    private val httpClient: HttpClient,
-    private val basePath: String,
-    private val getToken: suspend () -> AccessToken,
+    baseUrl: String,
+    clock: Clock,
+    authTokenProvider: AuthTokenProvider,
+    connectTimeout: Duration = 10.seconds,
+    timeout: Duration = 15.seconds,
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) {
-    private val log = KotlinLogging.logger {}
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+            retry = Retry.Fast(maksForsøk = 4, delay = 1.seconds, retryIkkeIdempotente = true),
+        ),
+        transport = transport,
+    )
+
+    private val graphqlUri = URI.create("$baseUrl/graphql")
+
     private val journalPostQuery =
         SafJournalpostClient::class
             .java
@@ -40,94 +67,64 @@ class SafJournalpostClient(
 
     suspend fun getJournalpostMetadata(
         journalpostId: JournalpostId,
-    ): JournalpostMetadata? {
-        val accessToken = getToken().token
-
-        val findJournalpostRequest =
-            FindJournalpostRequest(
+    ): Either<KanIkkeHenteJournalpost, JournalpostMetadata> {
+        return httpKlient.postJson<GraphQLResponse<FindJournalpostResponse>>(
+            uri = graphqlUri,
+            body = FindJournalpostRequest(
                 query = journalPostQuery,
                 variables = Variables(journalpostId.toString()),
-            )
-
-        val httpResponse =
-            httpClient
-                .post("$basePath/graphql") {
-                    setBody(findJournalpostRequest)
-                    headers {
-                        append(HttpHeaders.Authorization, "Bearer $accessToken")
-                        append("X-Correlation-ID", journalpostId.toString())
-                        append(HttpHeaders.ContentType, "application/json")
-                    }
-                }
-        val findJournalpostResponseString = httpResponse.bodyAsText()
-        if (!httpResponse.status.isSuccess()) {
-            log.error { "Noe gikk galt ved kall til SAF for journalpostId $journalpostId: feilkode: ${httpResponse.status}, melding: $findJournalpostResponseString" }
-            throw RuntimeException("Noe gikk galt ved kall til SAF")
+            ),
+            headere = listOf(NavHeadere.xCorrelationId(journalpostId.toString())),
+            godta = Statusregel.Eksakt(200),
+        ).mapLeft {
+            KanIkkeHenteJournalpost.KallFeilet(it)
+        }.flatMap { respons ->
+            respons.body.tilJournalpostMetadata(journalpostId, respons.metadata)
         }
+    }
 
-        val findJournalpostResponse =
-            objectMapper.readValue<GraphQLResponse<FindJournalpostResponse>?>(findJournalpostResponseString)
-
-        if (findJournalpostResponse == null) {
-            log.error { "Kall til SAF feilet for $journalpostId" }
-            return null
+    /**
+     * GraphQL svarer av design 200 OK på alle svar; funksjonelle feil ligger i errors-lista.
+     * Alle feilkodene er fatale her: en journalposthendelse gjelder alltid en journalpost som skal finnes, så «not_found» er like unormalt som «server_error» — consumeren kaster og lar Kafka-retryen prøve på nytt.
+     */
+    private fun GraphQLResponse<FindJournalpostResponse>.tilJournalpostMetadata(
+        journalpostId: JournalpostId,
+        metadata: HttpKlientMetadata,
+    ): Either<KanIkkeHenteJournalpost, JournalpostMetadata> {
+        val graphQLFeil = errors.orEmpty()
+        if (graphQLFeil.isNotEmpty()) {
+            return KanIkkeHenteJournalpost.GraphQLFeil(
+                feilkoder = graphQLFeil.map { it.extensions?.code ?: "ukjent" },
+                httpKlientMetadata = metadata,
+            ).left()
         }
-
-        if (findJournalpostResponse.errors != null) {
-            findJournalpostResponse.errors.forEach { log.error { "Saf kastet error: $it" } }
-            return null
+        val journalpost = data?.journalpost
+        if (journalpost?.journalstatus == null) {
+            return KanIkkeHenteJournalpost.UfullstendigJournalpost(metadata).left()
         }
-
-        if (findJournalpostResponse.data.journalpost.journalstatus == null) {
-            log.error { "Klarte ikke hente data fra SAF $journalpostId" }
-            return null
-        }
-
-        val journalpost = findJournalpostResponse.data.journalpost
-
         return JournalpostMetadata(
             journalpostId = journalpostId,
             bruker = Bruker(
                 journalpost.bruker?.id,
                 journalpost.bruker?.type,
             ),
-            erJournalfort = erJournalfort(journalpost.journalstatus),
-            datoOpprettet = dateTimeStringTilLocalDateTime(journalpost.datoOpprettet),
-            brevkode = finnBrevkodeForPdf(journalpost.dokumenter, journalpostId),
+            erJournalfort = journalpost.journalstatus != Journalstatus.MOTTATT,
+            datoOpprettet = journalpost.datoOpprettet?.let { dato ->
+                Either.catch { LocalDateTime.parse(dato) }.getOrNull()
+            },
+            brevkode = finnBrevkodeForPdf(journalpost.dokumenter),
             tittel = journalpost.tittel,
-        )
+        ).right()
     }
 
-    private fun erJournalfort(journalstatus: Journalstatus?): Boolean {
-        return journalstatus != Journalstatus.MOTTATT
-    }
-
-    fun dateTimeStringTilLocalDateTime(dateTime: String?): LocalDateTime? {
-        dateTime?.let {
-            return try {
-                LocalDateTime.parse(dateTime)
-            } catch (e: Exception) {
-                log.error { "Journalpost har ikke en gyldig datoOpprettet $dateTime, $e" }
-                null
-            }
-        }
-        log.error { "Journalpost mangler datoOpprettet $dateTime" }
-        return null
-    }
-
-    fun finnBrevkodeForPdf(
-        dokumentListe: List<Dokument>?,
-        journalpostId: JournalpostId,
-    ): String? {
+    /** Brevkoden hentes fra dokumentene som har en arkivvariant (PDF); journalposter uten PDF gir null. */
+    private fun finnBrevkodeForPdf(dokumentListe: List<Dokument>?): String? {
         val dokumenter = dokumentListe?.filter {
             it.dokumentvarianter.any { variant -> variant.variantformat == Variantformat.ARKIV }
         }
-
         if (dokumenter.isNullOrEmpty()) {
-            log.warn { "Journalpost med id $journalpostId mangler PDF" }
             return null
         }
-
         return dokumenter.firstOrNull { it.brevkode != null }?.brevkode
     }
 }
@@ -137,7 +134,7 @@ data class FindJournalpostRequest(val query: String, val variables: Variables)
 data class Variables(val id: String)
 
 data class FindJournalpostResponse(
-    val journalpost: Journalpost,
+    val journalpost: Journalpost?,
 )
 
 data class Journalpost(

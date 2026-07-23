@@ -31,6 +31,10 @@ object Configuration {
 
     val jdbcUrl = getEnvVar("DB_JDBC_URL")
 
+    /** Til sikkerlogg-henvisningen; satt av nais i podene, null lokalt (da blir henvisningen ren tekst uten lenke). */
+    val naisAppName: String? by lazy { System.getenv("NAIS_APP_NAME") ?: System.getProperty("NAIS_APP_NAME") }
+    val gcpTeamProjectId: String? by lazy { System.getenv("GCP_TEAM_PROJECT_ID") ?: System.getProperty("GCP_TEAM_PROJECT_ID") }
+
     fun isNais() = applicationProfile() != Profile.LOCAL
 
     fun isProd() = applicationProfile() == Profile.PROD

@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.infra.db.DataSourceSetup
-import no.nav.tiltakspenger.journalposthendelser.infra.httpClientApache
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalpostService
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseService
 import no.nav.tiltakspenger.journalposthendelser.journalpost.OppgaveService
@@ -15,11 +14,13 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.SafJournal
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandlingapi.SaksbehandlingApiClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.JournalposthendelseConsumer
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
+import no.nav.tiltakspenger.libs.logging.Sikkerlogg
+import no.nav.tiltakspenger.libs.logging.infra.KotlinLoggingSikkerlogg
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
 import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
-import no.nav.tiltakspenger.libs.texas.IdentityProvider
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
+import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
 import java.time.Clock
 
 open class ApplicationContext(
@@ -32,6 +33,11 @@ open class ApplicationContext(
 
     val journalposthendelseRepo = JournalposthendelseRepo(sessionFactory)
 
+    val sikkerlogg: Sikkerlogg = KotlinLoggingSikkerlogg(
+        appNavn = Configuration.naisAppName,
+        gcpProsjektId = Configuration.gcpTeamProjectId,
+    )
+
     val texasClient: TexasClient = TexasHttpClient(
         introspectionUrl = Configuration.naisTokenIntrospectionEndpoint,
         tokenUrl = Configuration.naisTokenEndpoint,
@@ -39,67 +45,36 @@ open class ApplicationContext(
         clock = clock,
     )
 
-    val httpClient = httpClientApache()
-    val httpClientSlowApis = httpClientApache(
-        connectTimeoutSeconds = 10,
-        requestTimeoutSeconds = 15,
-        socketTimeoutSeconds = 10,
+    private fun systemTokenProvider(scope: String) = TexasSystemTokenProvider(
+        texasClient = texasClient,
+        audienceTarget = scope,
+        rewriteAudienceTarget = false,
     )
+
     val safJournalpostClient = SafJournalpostClient(
-        basePath = Configuration.safUrl,
-        httpClient = httpClientSlowApis,
-        getToken = {
-            texasClient.getSystemToken(
-                Configuration.safScope,
-                IdentityProvider.AZUREAD,
-                rewriteAudienceTarget = false,
-            )
-        },
+        baseUrl = Configuration.safUrl,
+        clock = clock,
+        authTokenProvider = systemTokenProvider(Configuration.safScope),
     )
     val pdlClient = PdlClient(
-        basePath = Configuration.pdlUrl,
-        httpClient = httpClient,
-        getToken = {
-            texasClient.getSystemToken(
-                Configuration.pdlScope,
-                IdentityProvider.AZUREAD,
-                rewriteAudienceTarget = false,
-            )
-        },
+        baseUrl = Configuration.pdlUrl,
+        clock = clock,
+        authTokenProvider = systemTokenProvider(Configuration.pdlScope),
     )
     val saksbehandlingApiClient = SaksbehandlingApiClient(
-        basePath = Configuration.saksbehandlingApiUrl,
-        httpClient = httpClient,
-        getToken = {
-            texasClient.getSystemToken(
-                Configuration.saksbehandlingApiScope,
-                IdentityProvider.AZUREAD,
-                rewriteAudienceTarget = false,
-            )
-        },
+        baseUrl = Configuration.saksbehandlingApiUrl,
+        clock = clock,
+        authTokenProvider = systemTokenProvider(Configuration.saksbehandlingApiScope),
     )
     val oppgaveClient = OppgaveClient(
-        basePath = Configuration.oppgaveUrl,
-        httpClient = httpClient,
-        getToken = {
-            texasClient.getSystemToken(
-                Configuration.oppgaveScope,
-                IdentityProvider.AZUREAD,
-                rewriteAudienceTarget = false,
-            )
-        },
+        baseUrl = Configuration.oppgaveUrl,
         clock = clock,
+        authTokenProvider = systemTokenProvider(Configuration.oppgaveScope),
     )
     val dokarkivClient = DokarkivClient(
-        basePath = Configuration.dokarkivUrl,
-        httpClient = httpClient,
-        getToken = {
-            texasClient.getSystemToken(
-                Configuration.dokarkivScope,
-                IdentityProvider.AZUREAD,
-                rewriteAudienceTarget = false,
-            )
-        },
+        baseUrl = Configuration.dokarkivUrl,
+        clock = clock,
+        authTokenProvider = systemTokenProvider(Configuration.dokarkivScope),
     )
 
     val journalpostService = JournalpostService(
@@ -107,11 +82,13 @@ open class ApplicationContext(
         dokarkivClient = dokarkivClient,
         journalposthendelseRepo = journalposthendelseRepo,
         clock = clock,
+        sikkerlogg = sikkerlogg,
     )
     val oppgaveService = OppgaveService(
         oppgaveClient = oppgaveClient,
         journalposthendelseRepo = journalposthendelseRepo,
         clock = clock,
+        sikkerlogg = sikkerlogg,
     )
 
     val journalposthendelseService = JournalposthendelseService(
@@ -121,6 +98,7 @@ open class ApplicationContext(
         journalpostService = journalpostService,
         oppgaveService = oppgaveService,
         clock = clock,
+        sikkerlogg = sikkerlogg,
     )
 
     val journalposthendelseConsumer = JournalposthendelseConsumer(

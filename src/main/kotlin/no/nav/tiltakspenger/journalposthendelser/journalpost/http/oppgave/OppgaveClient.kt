@@ -1,22 +1,22 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave
 
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import no.nav.tiltakspenger.libs.common.AccessToken
+import arrow.core.Either
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.JournalpostId
+import no.nav.tiltakspenger.libs.httpklient.HttpKlientError
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlient
+import no.nav.tiltakspenger.libs.httpklient.infra.HttpKlientConfig
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.AuthTokenProvider
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.KlientAuth
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.NavHeadere
+import no.nav.tiltakspenger.libs.httpklient.infra.kall.Statusregel
+import no.nav.tiltakspenger.libs.httpklient.infra.retry.Retry
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
+import no.nav.tiltakspenger.libs.httpklient.infra.transport.JavaHttpTransport
+import java.net.URI
 import java.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * HTTP-klient for oppgave-API-et (opprettelse og søk av oppgaver).
@@ -26,118 +26,60 @@ import java.time.Clock
  * API-spec: https://oppgave.intern.dev.nav.no/ (Swagger)
  * Slack: #team-oppgavehåndtering
  * Teamkatalog: https://teamkatalogen.nav.no/team/1672d05d-46ed-4406-a3a4-8343db75c285
+ *
+ * Duplikatkontrollen (finn åpen oppgave før opprettelse) er forretningslogikk og ligger i [no.nav.tiltakspenger.journalposthendelser.journalpost.OppgaveService].
+ * Retryen replikerer den gamle ktor-klienten: fire forsøk totalt med konstant 1 s delay.
+ * retryIkkeIdempotente er satt for paritet med den gamle klienten, som også retryet POST-ene; duplikatkontrollen i servicen begrenser konsekvensen av et gjentatt opprett-kall.
+ *
+ * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class OppgaveClient(
-    private val httpClient: HttpClient,
-    basePath: String,
-    private val getToken: suspend () -> AccessToken,
-    private val clock: Clock,
+    baseUrl: String,
+    clock: Clock,
+    authTokenProvider: AuthTokenProvider,
+    connectTimeout: Duration = 5.seconds,
+    timeout: Duration = 10.seconds,
+    transport: HttpTransport = JavaHttpTransport(connectTimeout = connectTimeout),
 ) {
-    private val logger = KotlinLogging.logger {}
-    private val apiPath = "$basePath/api/v1/oppgaver"
+    private val httpKlient: HttpKlient = HttpKlient(
+        clock = clock,
+        config = HttpKlientConfig(
+            timeout = timeout,
+            auth = KlientAuth.System(authTokenProvider),
+            retry = Retry.Fast(maksForsøk = 4, delay = 1.seconds, retryIkkeIdempotente = true),
+        ),
+        transport = transport,
+    )
 
-    suspend fun opprettOppgaveForPapirsoknad(
-        fnr: String,
+    private val apiPath = "$baseUrl/api/v1/oppgaver"
+
+    suspend fun opprettOppgave(
+        request: OpprettOppgaveRequest,
+        correlationId: CorrelationId,
+    ): Either<HttpKlientError, Int> {
+        return httpKlient.postJson<OppgaveResponse>(
+            uri = URI.create(apiPath),
+            body = request,
+            headere = listOf(NavHeadere.xCorrelationId(correlationId.toString())),
+            godta = Statusregel.Eksakt(201),
+        ).map { it.body.id }
+    }
+
+    suspend fun finnOppgaver(
         journalpostId: JournalpostId,
+        oppgavetyper: List<String>,
         correlationId: CorrelationId,
-    ): Int {
-        val request = OpprettOppgaveRequest.opprettOppgaveRequestForPapirsoknad(
-            fnr = fnr,
-            journalpostId = journalpostId,
-            clock = clock,
-        )
-        return opprettOppgaveMedDuplikatkontroll(request, correlationId)
-            .also { logger.info { "Opprettet behandle sak-oppgave med id $it for journalpostId $journalpostId" } }
-    }
-
-    suspend fun opprettJournalforingsoppgave(
-        fnr: String,
-        journalpostId: JournalpostId,
-        journalpostTittel: String,
-        correlationId: CorrelationId,
-    ): Int {
-        val request = OpprettOppgaveRequest.opprettOppgaveRequestForJournalforingsoppgave(
-            fnr = fnr,
-            journalpostId = journalpostId,
-            journalpostTittel = journalpostTittel,
-            clock = clock,
-        )
-        return opprettOppgaveMedDuplikatkontroll(request, correlationId)
-            .also { logger.info { "Opprettet journalføringsoppgave med id $it for journalpostId $journalpostId" } }
-    }
-
-    suspend fun opprettFordelingsoppgave(journalpostId: JournalpostId, correlationId: CorrelationId): Int {
-        val request = OpprettOppgaveRequest.opprettOppgaveRequestForFordelingsoppgave(
-            journalpostId = journalpostId,
-            clock = clock,
-        )
-        return opprettOppgaveMedDuplikatkontroll(request, correlationId)
-            .also { logger.info { "Opprettet fordelingsoppgave med id $it for journalpostId $journalpostId" } }
-    }
-
-    private suspend fun opprettOppgaveMedDuplikatkontroll(
-        opprettOppgaveRequest: OpprettOppgaveRequest,
-        correlationId: CorrelationId,
-    ): Int {
-        val oppgaveResponse = finnOppgave(
-            journalpostId = JournalpostId(opprettOppgaveRequest.journalpostId),
-            oppgaveType = listOf(opprettOppgaveRequest.oppgavetype),
-            correlationId = correlationId,
-        )
-        if (oppgaveResponse.antallTreffTotalt > 0 && oppgaveResponse.oppgaver.isNotEmpty()) {
-            logger.warn { "Åpen oppgave av type ${opprettOppgaveRequest.oppgavetype} for journalpostId: ${opprettOppgaveRequest.journalpostId} finnes fra før, correlationId: ${correlationId.value}" }
-            return oppgaveResponse.oppgaver.first().id
-        }
-        return opprettOppgave(opprettOppgaveRequest, correlationId)
-    }
-
-    private suspend fun opprettOppgave(
-        opprettOppgaveRequest: OpprettOppgaveRequest,
-        correlationId: CorrelationId,
-    ): Int {
-        val httpResponse = httpClient.post(apiPath) {
-            header("X-Correlation-ID", correlationId.toString())
-            bearerAuth(getToken().token)
-            accept(ContentType.Application.Json)
-            contentType(ContentType.Application.Json)
-            setBody(opprettOppgaveRequest)
-        }
-
-        if (httpResponse.status == HttpStatusCode.Created) {
-            return httpResponse.body<OppgaveResponse>().id
-        } else {
-            val errorResponse = httpResponse.bodyAsText()
-            logger.error { "Noe gikk galt ved oppretting av oppgave for journalpost med id ${opprettOppgaveRequest.journalpostId}: ${httpResponse.status.value}, $errorResponse, correlationId ${correlationId.value}" }
-            throw RuntimeException("Oppgave svarte med feilmelding ved oppretting av oppgave: ${httpResponse.status.value}")
-        }
-    }
-
-    suspend fun finnOppgave(
-        journalpostId: JournalpostId,
-        oppgaveType: List<String>,
-        correlationId: CorrelationId,
-    ): FinnOppgaveResponse {
-        val httpResponse = httpClient.get(apiPath) {
-            url {
-                parameters.append("tema", TEMA_TILTAKSPENGER)
-                oppgaveType.forEach {
-                    parameters.append("oppgavetype", it)
-                }
-                parameters.append("journalpostId", journalpostId.toString())
-                parameters.append("statuskategori", "AAPEN")
-            }
-            header("X-Correlation-ID", correlationId.toString())
-            bearerAuth(getToken().token)
-            accept(ContentType.Application.Json)
-            contentType(ContentType.Application.Json)
-        }
-
-        if (httpResponse.status == HttpStatusCode.OK) {
-            return httpResponse.body<FinnOppgaveResponse>()
-        } else {
-            val errorResponse = httpResponse.bodyAsText()
-            logger.error { "Noe gikk galt ved duplikatsjekk mot oppgave for journalpost med id $journalpostId: ${httpResponse.status.value}, $errorResponse, correlationId ${correlationId.value}" }
-            throw RuntimeException("Oppgave svarte med feilmelding ved duplikatsjekk: ${httpResponse.status.value}")
-        }
+    ): Either<HttpKlientError, FinnOppgaveResponse> {
+        val query = buildList {
+            add("tema=$TEMA_TILTAKSPENGER")
+            oppgavetyper.forEach { add("oppgavetype=$it") }
+            add("journalpostId=$journalpostId")
+            add("statuskategori=AAPEN")
+        }.joinToString("&")
+        return httpKlient.getJson<FinnOppgaveResponse>(
+            uri = URI.create("$apiPath?$query"),
+            headere = listOf(NavHeadere.xCorrelationId(correlationId.toString())),
+            godta = Statusregel.Eksakt(200),
+        ).map { it.body }
     }
 }

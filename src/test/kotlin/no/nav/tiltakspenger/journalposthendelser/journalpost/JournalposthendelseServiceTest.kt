@@ -1,6 +1,7 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
-import io.kotest.assertions.throwables.shouldThrow
+import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearMocks
@@ -10,6 +11,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalpostMetadata
+import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalposthendelseIkkeBehandlet
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.dokarkiv.DokarkivClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.FinnOppgaveResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveClient
@@ -18,12 +20,14 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.Oppgav
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.pdl.PdlClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.Bruker
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.BrukerIdType
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.KanIkkeHenteJournalpost
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saf.SafJournalpostClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandlingapi.SaksbehandlingApiClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.JournalføringshendelseFraKafka
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.journalposthendelser.testutils.shouldBeCloseTo
+import no.nav.tiltakspenger.journalposthendelser.testutils.tomHttpKlientMetadata
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
@@ -63,30 +67,29 @@ class JournalposthendelseServiceTest {
     @BeforeEach
     fun clearMockData() {
         clearMocks(safJournalpostClient, pdlClient, saksbehandlingApiClient, dokarkivClient, oppgaveClient)
-        coEvery { pdlClient.hentGjeldendeIdent(any(), any()) } returns fnr
-        coEvery { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) } returns saksnummer
-        coEvery { oppgaveClient.finnOppgave(any(), any(), any()) } returns FinnOppgaveResponse(
+        coEvery { pdlClient.hentGjeldendeIdent(any()) } returns fnr.right()
+        coEvery { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) } returns saksnummer.right()
+        coEvery { oppgaveClient.finnOppgaver(any(), any(), any()) } returns FinnOppgaveResponse(
             antallTreffTotalt = 0,
             oppgaver = emptyList(),
-        )
-        coEvery { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) } returns oppgaveId
-        coEvery { oppgaveClient.opprettJournalforingsoppgave(any(), any(), any(), any()) } returns oppgaveId
-        coEvery { oppgaveClient.opprettFordelingsoppgave(any(), any()) } returns oppgaveId
+        ).right()
+        coEvery { oppgaveClient.opprettOppgave(any(), any()) } returns oppgaveId.right()
+        coEvery { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) } returns Unit.right()
+        coEvery { dokarkivClient.ferdigstillJournalpost(any()) } returns Unit.right()
     }
 
     @Test
-    fun `behandleJournalpostHendelse - saf-klient returnerer ingen journalpost - kaster feil`() {
+    fun `behandleJournalpostHendelse - saf-klient feiler - returnerer JournalposthendelseIkkeBehandlet`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
-                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns null
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns
+                    KanIkkeHenteJournalpost.UfullstendigJournalpost(tomHttpKlientMetadata()).left()
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
-                shouldThrow<IllegalStateException> {
-                    journalposthendelseService.behandleJournalpostHendelse(
-                        journalføringshendelseFraKafka(),
-                    )
-                }
+                journalposthendelseService.behandleJournalpostHendelse(
+                    journalføringshendelseFraKafka(),
+                ) shouldBe JournalposthendelseIkkeBehandlet.left()
             }
         }
     }
@@ -97,7 +100,7 @@ class JournalposthendelseServiceTest {
             runTest {
                 coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(
                     erJournalfort = true,
-                )
+                ).right()
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
@@ -109,11 +112,11 @@ class JournalposthendelseServiceTest {
 
                 journalposthendelseRepo.hent(journalpostId) shouldBe null
 
-                coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any(), any()) }
+                coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any()) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
-                coVerify(exactly = 0) { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any()) }
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgave(any(), any()) }
             }
         }
     }
@@ -124,7 +127,7 @@ class JournalposthendelseServiceTest {
             runTest {
                 coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(
                     erJournalfort = true,
-                )
+                ).right()
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
                 val journalposthendelseDB = JournalposthendelseDB(
@@ -152,11 +155,11 @@ class JournalposthendelseServiceTest {
                 journalposthendelseFraDB shouldNotBe null
                 journalposthendelseFraDB?.sistEndret shouldBeCloseTo journalposthendelseDB.sistEndret
 
-                coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any(), any()) }
+                coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any()) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
-                coVerify(exactly = 0) { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any()) }
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgave(any(), any()) }
             }
         }
     }
@@ -165,11 +168,11 @@ class JournalposthendelseServiceTest {
     fun `behandleJournalpostHendelse - journalpost er ikke journalfort, har oppgave, finnes ikke i db - ignorerer journalposthendelse`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
-                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata()
-                coEvery { oppgaveClient.finnOppgave(any(), any(), any()) } returns FinnOppgaveResponse(
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata().right()
+                coEvery { oppgaveClient.finnOppgaver(any(), any(), any()) } returns FinnOppgaveResponse(
                     antallTreffTotalt = 1,
                     oppgaver = listOf(OppgaveResponse(oppgaveId)),
-                )
+                ).right()
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
@@ -177,11 +180,11 @@ class JournalposthendelseServiceTest {
 
                 journalposthendelseRepo.hent(journalpostId) shouldBe null
 
-                coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any(), any()) }
+                coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any()) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
-                coVerify(exactly = 0) { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any()) }
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgave(any(), any()) }
             }
         }
     }
@@ -192,7 +195,7 @@ class JournalposthendelseServiceTest {
             runTest {
                 coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(
                     erJournalfort = true,
-                )
+                ).right()
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
                 val journalposthendelseDB = JournalposthendelseDB(
@@ -216,11 +219,11 @@ class JournalposthendelseServiceTest {
                 journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo nå(clock)
                 journalposthendelseFraDB?.sistEndret shouldBeCloseTo nå(clock)
 
-                coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(fnr, journalpostId) }
+                coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(fnr) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
-                coVerify(exactly = 1) { oppgaveClient.opprettOppgaveForPapirsoknad(fnr, journalpostId, any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any()) }
+                coVerify(exactly = 1) { oppgaveClient.opprettOppgave(match { it.oppgavetype == OppgaveType.BEHANDLE_SAK.kode && it.personident == fnr }, any()) }
             }
         }
     }
@@ -229,7 +232,7 @@ class JournalposthendelseServiceTest {
     fun `behandleJournalpostHendelse - ikke behandlet, mangler bruker - oppretter fordelingsoppgave`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
-                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(brukerId = null)
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata(brukerId = null).right()
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
@@ -247,11 +250,11 @@ class JournalposthendelseServiceTest {
                 journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo nå(clock)
                 journalposthendelseFraDB?.sistEndret shouldBeCloseTo nå(clock)
 
-                coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any(), any()) }
+                coVerify(exactly = 0) { pdlClient.hentGjeldendeIdent(any()) }
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
-                coVerify(exactly = 1) { oppgaveClient.opprettFordelingsoppgave(journalpostId, any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any()) }
+                coVerify(exactly = 1) { oppgaveClient.opprettOppgave(match { it.oppgavetype == OppgaveType.FORDELING.kode && it.personident == null }, any()) }
             }
         }
     }
@@ -265,7 +268,7 @@ class JournalposthendelseServiceTest {
                     brukerId = aktorId,
                     brukerIdType = BrukerIdType.AKTOERID,
                     brevkode = Brevkode.KLAGE,
-                )
+                ).right()
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
@@ -283,7 +286,7 @@ class JournalposthendelseServiceTest {
                 journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo nå(clock)
                 journalposthendelseFraDB?.sistEndret shouldBeCloseTo nå(clock)
 
-                coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(aktorId, journalpostId) }
+                coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(aktorId) }
                 coVerify(exactly = 1) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(fnr, any()) }
                 coVerify(exactly = 1) {
                     dokarkivClient.knyttSakTilJournalpost(
@@ -291,11 +294,10 @@ class JournalposthendelseServiceTest {
                         saksnummer,
                         fnr,
                         false,
-                        any(),
                     )
                 }
-                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any(), any()) }
-                coVerify(exactly = 1) { oppgaveClient.opprettJournalforingsoppgave(fnr, journalpostId, tittel, any()) }
+                coVerify(exactly = 0) { dokarkivClient.ferdigstillJournalpost(any()) }
+                coVerify(exactly = 1) { oppgaveClient.opprettOppgave(match { it.oppgavetype == OppgaveType.JOURNALFORING.kode && it.personident == fnr && it.beskrivelse == tittel }, any()) }
             }
         }
     }
@@ -304,7 +306,7 @@ class JournalposthendelseServiceTest {
     fun `behandleJournalpostHendelse - ikke behandlet, papirsoknad - journalforer og oppretter behandle sak-oppgave`() {
         withMigratedDb(runIsolated = true) { testDataHelper ->
             runTest {
-                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata()
+                coEvery { safJournalpostClient.getJournalpostMetadata(any()) } returns getJournalpostMetadata().right()
                 val journalposthendelseRepo = testDataHelper.journalposthendelseRepo
                 val journalposthendelseService = getJournalposthendelseService(journalposthendelseRepo)
 
@@ -322,7 +324,7 @@ class JournalposthendelseServiceTest {
                 journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldBeCloseTo nå(clock)
                 journalposthendelseFraDB?.sistEndret shouldBeCloseTo nå(clock)
 
-                coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(fnr, journalpostId) }
+                coVerify(exactly = 1) { pdlClient.hentGjeldendeIdent(fnr) }
                 coVerify(exactly = 1) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(fnr, any()) }
                 coVerify(exactly = 1) {
                     dokarkivClient.knyttSakTilJournalpost(
@@ -330,11 +332,10 @@ class JournalposthendelseServiceTest {
                         saksnummer,
                         fnr,
                         true,
-                        any(),
                     )
                 }
-                coVerify(exactly = 1) { dokarkivClient.ferdigstillJournalpost(journalpostId, any()) }
-                coVerify(exactly = 1) { oppgaveClient.opprettOppgaveForPapirsoknad(fnr, journalpostId, any()) }
+                coVerify(exactly = 1) { dokarkivClient.ferdigstillJournalpost(journalpostId) }
+                coVerify(exactly = 1) { oppgaveClient.opprettOppgave(match { it.oppgavetype == OppgaveType.BEHANDLE_SAK.kode && it.personident == fnr }, any()) }
             }
         }
     }

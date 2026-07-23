@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearMocks
@@ -8,6 +9,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
+import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.FinnOppgaveResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
@@ -32,9 +34,8 @@ class OppgaveServiceTest {
     @BeforeEach
     fun clearMockData() {
         clearMocks(oppgaveClient)
-        coEvery { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) } returns oppgaveId
-        coEvery { oppgaveClient.opprettJournalforingsoppgave(any(), any(), any(), any()) } returns oppgaveId
-        coEvery { oppgaveClient.opprettFordelingsoppgave(any(), any()) } returns oppgaveId
+        coEvery { oppgaveClient.finnOppgaver(any(), any(), any()) } returns FinnOppgaveResponse(antallTreffTotalt = 0, oppgaver = emptyList()).right()
+        coEvery { oppgaveClient.opprettOppgave(any(), any()) } returns oppgaveId.right()
     }
 
     @Test
@@ -65,7 +66,7 @@ class OppgaveServiceTest {
                 journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.BEHANDLE_SAK
                 journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldNotBe null
 
-                coVerify(exactly = 1) { oppgaveClient.opprettOppgaveForPapirsoknad(fnr, journalpostId, any()) }
+                coVerify(exactly = 1) { oppgaveClient.opprettOppgave(match { it.oppgavetype == OppgaveType.BEHANDLE_SAK.kode && it.personident == fnr && it.journalpostId == journalpostId.toString() }, any()) }
             }
         }
     }
@@ -101,7 +102,7 @@ class OppgaveServiceTest {
                 journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.BEHANDLE_SAK
                 journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldNotBe null
 
-                coVerify(exactly = 0) { oppgaveClient.opprettOppgaveForPapirsoknad(any(), any(), any()) }
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgave(any(), any()) }
             }
         }
     }
@@ -134,7 +135,7 @@ class OppgaveServiceTest {
                 journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.JOURNALFORING
                 journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldNotBe null
 
-                coVerify(exactly = 1) { oppgaveClient.opprettJournalforingsoppgave(fnr, journalpostId, tittel, any()) }
+                coVerify(exactly = 1) { oppgaveClient.opprettOppgave(match { it.oppgavetype == OppgaveType.JOURNALFORING.kode && it.personident == fnr && it.beskrivelse == tittel }, any()) }
             }
         }
     }
@@ -170,7 +171,7 @@ class OppgaveServiceTest {
                 journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.JOURNALFORING
                 journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldNotBe null
 
-                coVerify(exactly = 0) { oppgaveClient.opprettJournalforingsoppgave(any(), any(), any(), any()) }
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgave(any(), any()) }
             }
         }
     }
@@ -199,7 +200,7 @@ class OppgaveServiceTest {
                 journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.FORDELING
                 journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldNotBe null
 
-                coVerify(exactly = 1) { oppgaveClient.opprettFordelingsoppgave(journalpostId, any()) }
+                coVerify(exactly = 1) { oppgaveClient.opprettOppgave(match { it.oppgavetype == OppgaveType.FORDELING.kode && it.personident == null && it.journalpostId == journalpostId.toString() }, any()) }
             }
         }
     }
@@ -231,7 +232,7 @@ class OppgaveServiceTest {
                 journalposthendelseFraDB?.oppgavetype shouldBe OppgaveType.FORDELING
                 journalposthendelseFraDB?.oppgaveOpprettetTidspunkt shouldNotBe null
 
-                coVerify(exactly = 0) { oppgaveClient.opprettFordelingsoppgave(any(), any()) }
+                coVerify(exactly = 0) { oppgaveClient.opprettOppgave(any(), any()) }
             }
         }
     }

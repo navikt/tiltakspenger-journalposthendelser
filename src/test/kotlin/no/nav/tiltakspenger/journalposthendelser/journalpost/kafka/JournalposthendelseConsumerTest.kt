@@ -1,13 +1,17 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost.kafka
 
+import arrow.core.left
+import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrow
 import io.mockk.clearAllMocks
-import io.mockk.coJustRun
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseService
+import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalposthendelseIkkeBehandlet
 import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -49,7 +53,7 @@ class JournalposthendelseConsumerTest {
             temaNytt = "IND",
         )
 
-        coJustRun { journalposthendelseService.behandleJournalpostHendelse(any()) }
+        coEvery { journalposthendelseService.behandleJournalpostHendelse(any()) } returns Unit.right()
 
         consumer.consume("key", hendelseRecord)
 
@@ -63,11 +67,25 @@ class JournalposthendelseConsumerTest {
             temaNytt = "IND",
         )
 
-        coJustRun { journalposthendelseService.behandleJournalpostHendelse(any()) }
+        coEvery { journalposthendelseService.behandleJournalpostHendelse(any()) } returns Unit.right()
 
         consumer.consume("key", hendelseRecord)
 
         coVerify { journalposthendelseService.behandleJournalpostHendelse(journalføringshendelseFraKafka(hendelsesType = "TemaEndret")) }
+    }
+
+    @Test
+    fun `kaster nar behandlingen feiler, slik at hendelsen forsokes pa nytt`() = runTest {
+        val hendelseRecord = lagMockkJournalfoeringHendelseRecord(
+            hendelsesType = "JournalpostMottatt",
+            temaNytt = "IND",
+        )
+
+        coEvery { journalposthendelseService.behandleJournalpostHendelse(any()) } returns JournalposthendelseIkkeBehandlet.left()
+
+        shouldThrow<IllegalStateException> {
+            consumer.consume("key", hendelseRecord)
+        }
     }
 
     @ParameterizedTest

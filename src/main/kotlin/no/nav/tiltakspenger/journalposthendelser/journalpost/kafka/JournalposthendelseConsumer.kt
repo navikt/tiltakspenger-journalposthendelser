@@ -39,7 +39,10 @@ class JournalposthendelseConsumer(
         val hendelse = value.toJournalføringshendelseFraKafka()
         if (hendelse.skalBehandles) {
             log.info { "Mottok journalposthendelse som skal behandles. $hendelse" }
-            journalposthendelseService.behandleJournalpostHendelse(hendelse)
+            journalposthendelseService.behandleJournalpostHendelse(hendelse).onLeft {
+                // Feilen er allerede logget i servicen; kastet hindrer offset-commit slik at hendelsen forsøkes på nytt.
+                throw IllegalStateException("Behandling av journalposthendelse ${hendelse.journalpostId} feilet; se feillogg.")
+            }
         }
     }
 

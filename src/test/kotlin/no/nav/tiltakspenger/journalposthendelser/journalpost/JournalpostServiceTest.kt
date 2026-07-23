@@ -1,5 +1,6 @@
 package no.nav.tiltakspenger.journalposthendelser.journalpost
 
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.clearMocks
@@ -15,6 +16,7 @@ import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.JournalpostId
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
+import no.nav.tiltakspenger.libs.common.getOrFail
 import no.nav.tiltakspenger.libs.common.nå
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -29,7 +31,9 @@ class JournalpostServiceTest {
     @BeforeEach
     fun clearMockData() {
         clearMocks(saksbehandlingApiClient, dokarkivClient)
-        coEvery { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) } returns saksnummer
+        coEvery { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) } returns saksnummer.right()
+        coEvery { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) } returns Unit.right()
+        coEvery { dokarkivClient.ferdigstillJournalpost(any()) } returns Unit.right()
     }
 
     @Test
@@ -51,7 +55,7 @@ class JournalpostServiceTest {
                 val returnertJournalposthendelseDB = journalpostService.oppdaterEllerFerdigstillJournalpost(
                     journalposthendelseDB,
                     CorrelationId.generate(),
-                )
+                ).getOrFail()
 
                 returnertJournalposthendelseDB.saksnummer shouldBe saksnummer
                 returnertJournalposthendelseDB.journalpostOppdatertTidspunkt shouldNotBe null
@@ -76,13 +80,11 @@ class JournalpostServiceTest {
                         saksnummer,
                         journalposthendelseDB.fnr!!,
                         true,
-                        any(),
                     )
                 }
                 coVerify(exactly = 1) {
                     dokarkivClient.ferdigstillJournalpost(
                         journalposthendelseDB.journalpostId,
-                        any(),
                     )
                 }
             }
@@ -110,7 +112,7 @@ class JournalpostServiceTest {
                 val returnertJournalposthendelseDB = journalpostService.oppdaterEllerFerdigstillJournalpost(
                     journalposthendelseDB,
                     CorrelationId.generate(),
-                )
+                ).getOrFail()
 
                 returnertJournalposthendelseDB.saksnummer shouldBe saksnummer
                 returnertJournalposthendelseDB.journalpostOppdatertTidspunkt shouldNotBe null
@@ -124,11 +126,10 @@ class JournalpostServiceTest {
                 journalposthendelseFraDB?.oppgaveId shouldBe null
 
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
                 coVerify(exactly = 1) {
                     dokarkivClient.ferdigstillJournalpost(
                         journalposthendelseDB.journalpostId,
-                        any(),
                     )
                 }
             }
@@ -157,7 +158,7 @@ class JournalpostServiceTest {
                 val returnertJournalposthendelseDB = journalpostService.oppdaterEllerFerdigstillJournalpost(
                     journalposthendelseDB,
                     CorrelationId.generate(),
-                )
+                ).getOrFail()
 
                 returnertJournalposthendelseDB.saksnummer shouldBe saksnummer
                 returnertJournalposthendelseDB.journalpostOppdatertTidspunkt shouldNotBe null
@@ -171,10 +172,9 @@ class JournalpostServiceTest {
                 journalposthendelseFraDB?.oppgaveId shouldBe null
 
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
                 coVerify(exactly = 0) {
                     dokarkivClient.ferdigstillJournalpost(
-                        any(),
                         any(),
                     )
                 }
@@ -201,7 +201,7 @@ class JournalpostServiceTest {
                 val returnertJournalposthendelseDB = journalpostService.oppdaterEllerFerdigstillJournalpost(
                     journalposthendelseDB,
                     CorrelationId.generate(),
-                )
+                ).getOrFail()
 
                 returnertJournalposthendelseDB.saksnummer shouldBe saksnummer
                 returnertJournalposthendelseDB.journalpostOppdatertTidspunkt shouldNotBe null
@@ -226,12 +226,10 @@ class JournalpostServiceTest {
                         saksnummer,
                         journalposthendelseDB.fnr!!,
                         false,
-                        any(),
                     )
                 }
                 coVerify(exactly = 0) {
                     dokarkivClient.ferdigstillJournalpost(
-                        any(),
                         any(),
                     )
                 }
@@ -260,7 +258,7 @@ class JournalpostServiceTest {
                 val returnertJournalposthendelseDB = journalpostService.oppdaterEllerFerdigstillJournalpost(
                     journalposthendelseDB,
                     CorrelationId.generate(),
-                )
+                ).getOrFail()
 
                 returnertJournalposthendelseDB.saksnummer shouldBe saksnummer
                 returnertJournalposthendelseDB.journalpostOppdatertTidspunkt shouldNotBe null
@@ -274,10 +272,9 @@ class JournalpostServiceTest {
                 journalposthendelseFraDB?.oppgaveId shouldBe null
 
                 coVerify(exactly = 0) { saksbehandlingApiClient.hentEllerOpprettSaksnummer(any(), any()) }
-                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any(), any()) }
+                coVerify(exactly = 0) { dokarkivClient.knyttSakTilJournalpost(any(), any(), any(), any()) }
                 coVerify(exactly = 0) {
                     dokarkivClient.ferdigstillJournalpost(
-                        any(),
                         any(),
                     )
                 }

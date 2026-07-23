@@ -1,7 +1,10 @@
 package no.nav.tiltakspenger.journalposthendelser.infra.graphql
 
+/**
+ * [data] er nullable fordi GraphQL-API-ene svarer 200 OK med `data: null` og utfylt [errors] ved funksjonelle feil.
+ */
 data class GraphQLResponse<T>(
-    val data: T,
+    val data: T?,
     val errors: List<GraphQLResponseError>?,
 )
 
