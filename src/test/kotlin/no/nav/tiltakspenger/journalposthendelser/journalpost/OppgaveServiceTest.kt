@@ -27,6 +27,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Clock
 
+// TODO jah: OppgaveClient mockes her.
+// Kunne vært ekte e2e ved å bruke en reell OppgaveClient med FakeHttpTransport (som OppgaveClientTest gjør), så hele flyten dekkes uten mockk.
 class OppgaveServiceTest {
     private val oppgaveClient = mockk<OppgaveClient>()
     private val journalpostId = JournalpostId("4567")

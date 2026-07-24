@@ -143,6 +143,10 @@ kover {
                         "no.nav.tiltakspenger.journalposthendelser.ApplicationKt",
                         // TODO jah: Wiring av produksjonsavhengigheter; krever reell db-url via Configuration ved instansiering. Vurder å gjøre datasourcen injiserbar slik at konteksten kan instansieres i test.
                         "no.nav.tiltakspenger.journalposthendelser.context.ApplicationContext",
+                        // TODO jah: Profil/miljøvariabler leses fra global system-env (System.getenv/getProperty); PROD/DEV-grenene kan ikke dekkes uten å mutere JVM-global tilstand delt mellom tester. Gjør profil/cluster-navn injiserbart.
+                        "no.nav.tiltakspenger.journalposthendelser.Configuration*",
+                        // TODO jah: gcp/lokal-Flyway-grenen velges av global Configuration.isNais(); testes ikke uten å mutere system-env. Gjør profilvalget injiserbart.
+                        "no.nav.tiltakspenger.journalposthendelser.infra.db.FlywayMigrateKt",
                     )
                 }
             }

@@ -1,34 +1,22 @@
 package no.nav.tiltakspenger.journalposthendelser.infra.db
 
 import io.kotest.matchers.ints.shouldBeGreaterThan
-import io.kotest.matchers.shouldBe
-import no.nav.tiltakspenger.journalposthendelser.Configuration
-import no.nav.tiltakspenger.journalposthendelser.Profile
 import org.junit.jupiter.api.Test
 import org.testcontainers.postgresql.PostgreSQLContainer
 import javax.sql.DataSource
 
 class DataSourceSetupTest {
     @Test
-    fun `oppretter datasource og migrerer med bade gcp- og lokal-oppsettet`() {
+    fun `oppretter datasource og kjører Flyway-migreringene`() {
+        // Kjører i LOCAL-profil (ingen NAIS_CLUSTER_NAME satt) — ingen mutasjon av global system-env.
+        // Flyway ignorerer den manglende db/local-migration-lokasjonen og bruker db/migration.
         PostgreSQLContainer("postgres:17-alpine").use { postgres ->
             postgres.start()
             val skilletegn = if (postgres.jdbcUrl.contains('?')) "&" else "?"
             val jdbcUrl = "${postgres.jdbcUrl}${skilletegn}user=${postgres.username}&password=${postgres.password}"
 
-            // Tving frem Configuration-init i LOCAL-profil før vi later som vi er på Nais; med Nais-profil ville initialiseringen feilet på manglende miljøvariabler.
-            Configuration.applicationProfile() shouldBe Profile.LOCAL
-            try {
-                System.setProperty("NAIS_CLUSTER_NAME", "dev-gcp")
-                DataSourceSetup.createDatasource(jdbcUrl).use { dataSource ->
-                    antallKjørteMigreringer(dataSource) shouldBeGreaterThan 0
-
-                    // Lokal-varianten mot samme database; migreringene er alt kjørt, så dette skal være en no-op.
-                    System.clearProperty("NAIS_CLUSTER_NAME")
-                    flywayMigrate(dataSource)
-                }
-            } finally {
-                System.clearProperty("NAIS_CLUSTER_NAME")
+            DataSourceSetup.createDatasource(jdbcUrl).use { dataSource ->
+                antallKjørteMigreringer(dataSource) shouldBeGreaterThan 0
             }
         }
     }

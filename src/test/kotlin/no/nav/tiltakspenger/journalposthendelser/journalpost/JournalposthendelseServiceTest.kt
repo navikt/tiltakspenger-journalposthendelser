@@ -39,6 +39,8 @@ import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDateTime
 
+// TODO jah: HTTP-klientene mockes her.
+// Kunne vært ekte e2e ved å bruke reelle klienter med FakeHttpTransport (som klienttestene gjør), så hele flyten dekkes uten mockk.
 class JournalposthendelseServiceTest {
     private val safJournalpostClient = mockk<SafJournalpostClient>()
     private val pdlClient = mockk<PdlClient>()
