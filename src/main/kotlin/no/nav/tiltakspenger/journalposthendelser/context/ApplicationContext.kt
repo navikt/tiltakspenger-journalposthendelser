@@ -48,7 +48,6 @@ open class ApplicationContext(
     private fun systemTokenProvider(scope: String) = TexasSystemTokenProvider(
         texasClient = texasClient,
         audienceTarget = scope,
-        rewriteAudienceTarget = false,
     )
 
     val safJournalpostClient = SafJournalpostClient(

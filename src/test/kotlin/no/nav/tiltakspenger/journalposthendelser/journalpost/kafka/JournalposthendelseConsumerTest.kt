@@ -14,9 +14,7 @@ import kotlinx.coroutines.test.runTest
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseService
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalposthendelseIkkeBehandlet
-import no.nav.tiltakspenger.libs.kafka.config.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
-import org.apache.kafka.common.serialization.Deserializer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -92,36 +90,11 @@ class JournalposthendelseConsumerTest {
         }
     }
 
-    /**
-     * LocalKafkaConfig sitt avro-oppsett krever basic auth-userinfo som ikke finnes i test.
-     * Mock-registry uten basic auth lar oss konstruere den underliggende KafkaConsumer-en uten broker.
-     */
-    private val kafkaConfigUtenBroker = object : KafkaConfig {
-        private val delegate = LocalKafkaConfig(avroSchemaRegistry = "mock://test")
-
-        override fun commonConfig() = delegate.commonConfig()
-
-        override fun <K, V> consumerConfig(
-            keyDeserializer: Deserializer<K>,
-            valueDeserializer: Deserializer<V>,
-            groupId: String,
-        ) = delegate.consumerConfig(keyDeserializer, valueDeserializer, groupId)
-
-        override fun <K, V> avroConsumerConfig(
-            keyDeserializer: Deserializer<K>,
-            valueDeserializer: Deserializer<V>,
-            groupId: String,
-            useSpecificAvroReader: Boolean,
-        ) = delegate.avroConsumerConfig(keyDeserializer, valueDeserializer, groupId, useSpecificAvroReader) - "basic.auth.credentials.source"
-
-        override fun producerConfig() = delegate.producerConfig()
-    }
-
     @Test
     fun `run starter og stop stopper consumeren uten kjorende broker`() {
         val consumerUtenBroker = JournalposthendelseConsumer(
             topic = "test-topic-run-stop",
-            kafkaConfig = kafkaConfigUtenBroker,
+            kafkaConfig = LocalKafkaConfig(),
             journalposthendelseService = journalposthendelseService,
         )
 
