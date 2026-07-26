@@ -30,10 +30,6 @@
     <logger name="org.apache.kafka" level="WARN"/>
     <logger name="no.nav" level="DEBUG"/>
 
-    <logger level="INFO" name="audit" additivity="false">
-        <appender-ref ref="audit"/>
-    </logger>
-
     <logger name="team-logs-logger" level="DEBUG" additivity="false">
         <appender-ref ref="team-logs" />
     </logger>
