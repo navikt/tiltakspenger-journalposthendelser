@@ -31,7 +31,7 @@ import kotlin.time.Duration.Companion.seconds
  * Retryen replikerer den gamle ktor-klienten: fire forsøk totalt med konstant 1 s delay.
  * retryIkkeIdempotente er satt for paritet med den gamle klienten, som også retryet POST-ene; duplikatkontrollen i servicen begrenser konsekvensen av et gjentatt opprett-kall.
  *
- * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
+ * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class OppgaveClient(
     baseUrl: String,

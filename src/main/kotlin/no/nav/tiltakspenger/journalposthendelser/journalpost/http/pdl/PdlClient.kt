@@ -33,7 +33,7 @@ import kotlin.time.Duration.Companion.seconds
  * Retryen replikerer den gamle ktor-klienten: fire forsøk totalt med konstant 1 s delay.
  * retryIkkeIdempotente er satt fordi GraphQL-oppslaget går som POST, men er et rent leseoppslag uten sideeffekter.
  *
- * @param transport Nettverks-sømmen til [HttpKlient]; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
+ * @param transport Transporten som gjør nettverkskallet; default er produksjonstransporten, tester sender inn `FakeHttpTransport` slik at hele den reelle pipelinen kjører.
  */
 class PdlClient(
     baseUrl: String,
