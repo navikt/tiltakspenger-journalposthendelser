@@ -14,7 +14,8 @@ import kotlinx.coroutines.test.runTest
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseService
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalposthendelseIkkeBehandlet
-import no.nav.tiltakspenger.libs.kafka.config.LocalKafkaConfig
+import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
+import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -22,9 +23,13 @@ import org.junit.jupiter.params.provider.ValueSource
 
 class JournalposthendelseConsumerTest {
     private val journalposthendelseService = mockk<JournalposthendelseService>()
+    private val lokalAvroKafkaConfig = AvroKafkaConfig(
+        kafkaConfig = KafkaConfig(kafkaBrokers = "localhost:9092"),
+        schemaRegistryUrl = "mock://test",
+    )
     private val consumer = JournalposthendelseConsumer(
         topic = "test-topic",
-        kafkaConfig = LocalKafkaConfig(),
+        avroKafkaConfig = lokalAvroKafkaConfig,
         journalposthendelseService = journalposthendelseService,
     )
 
@@ -94,7 +99,7 @@ class JournalposthendelseConsumerTest {
     fun `run starter og stop stopper consumeren uten kjorende broker`() {
         val consumerUtenBroker = JournalposthendelseConsumer(
             topic = "test-topic-run-stop",
-            kafkaConfig = LocalKafkaConfig(),
+            avroKafkaConfig = lokalAvroKafkaConfig,
             journalposthendelseService = journalposthendelseService,
         )
 
@@ -105,8 +110,8 @@ class JournalposthendelseConsumerTest {
     }
 
     @Test
-    fun `default kafka-config utenfor Nais er LocalKafkaConfig`() {
-        // Utelatt kafkaConfig-parameter evaluerer defaulten (LocalKafkaConfig utenfor Nais) ved konstruksjon.
+    fun `default kafka-config utenfor Nais konstrueres uten miljølesing`() {
+        // Utelatt avroKafkaConfig-parameter evaluerer defaulten (lokal AvroKafkaConfig utenfor Nais) ved konstruksjon.
         shouldNotThrowAny {
             JournalposthendelseConsumer(
                 topic = "test-topic-default-config",
