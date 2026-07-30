@@ -112,7 +112,10 @@ class PdlClient(
 
 data class HentIdenterRequest(val query: String, val variables: PdlVariables)
 
-data class PdlVariables(val ident: String)
+data class PdlVariables(val ident: String) {
+    /** Identen er et fødselsnummer, så den maskeres i logger og feilmeldinger. */
+    override fun toString() = "PdlVariables(ident=*****)"
+}
 
 data class HentIdenterResponse(
     val hentIdenter: Identliste?,

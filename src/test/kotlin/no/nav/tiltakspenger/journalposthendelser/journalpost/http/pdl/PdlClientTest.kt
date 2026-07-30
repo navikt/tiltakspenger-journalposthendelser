@@ -126,4 +126,9 @@ internal class PdlClientTest {
 
         feil.shouldBeInstanceOf<KanIkkeHenteIdent.GraphQLFeil>().feilkoder shouldBe listOf("server_error")
     }
+
+    @Test
+    fun `identen maskeres i toString på requesten`() {
+        PdlVariables(ident = fnr).toString() shouldBe "PdlVariables(ident=*****)"
+    }
 }
