@@ -25,14 +25,18 @@ fun isNonStable(version: String): Boolean {
     return isStable.not()
 }
 
-// Avro-pluginen drar inn hele `avro-tools` på buildscript-classpathen, men `generateAvro` bruker
-// bare kodegeneratoren i `avro-compiler`.
-// `avro-tools` → `avro-mapred` → `avro-ipc-jetty` → Jetty 9.4, som er EOL og ikke får
-// sikkerhetsfikser; sammen med gammel `commons-lang3` og `avro-compiler` 1.12.0 sto det for 16
-// Dependabot-alerts med scope `development`.
+// Avro-pluginen drar inn `avro-tools` på buildscript-classpathen, og derfra kommer
+// `avro-mapred` → `avro-ipc-jetty` → Jetty 9.4, som er EOL og ikke får sikkerhetsfikser.
+// Sammen med gammel `commons-lang3` og `avro-compiler` 1.12.0 sto det for 16 Dependabot-alerts
+// med scope `development`.
 // Ingenting av det havner i imaget, men støyen skjulte de reelle runtime-funnene i alert-lista.
+//
+// Vi ekskluderer `avro-ipc-jetty` og ikke hele `avro-tools`, selv om schemaet vårt her er `.avsc`
+// og kodegenereringen ville klart seg uten resten: `.avdl`-schemaer trenger `avro-idl` fra samme
+// tre, og en bred ekskludering ville feilet med NoClassDefFoundError på `org/apache/avro/idl/IdlReader`
+// den dagen noen legger til et. Samme avgrensning som i saksbehandling-api, som allerede bruker `.avdl`.
 buildscript {
-    configurations["classpath"].exclude(group = "org.apache.avro", module = "avro-tools")
+    configurations["classpath"].exclude(group = "org.apache.avro", module = "avro-ipc-jetty")
     dependencies {
         constraints {
             // Kodeinjeksjon i Avros Java-SDK (GHSA-rp46-r563-jrc7); samme versjon som `avroVersion`.
