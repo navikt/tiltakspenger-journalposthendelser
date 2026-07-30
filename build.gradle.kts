@@ -131,7 +131,8 @@ dependencies {
 
 // --- Kover --------------------------------------------------------------------
 // Holder 100 % linjedekning for all produksjonskode utenom eksplisitte unntak.
-// Dekningen rapporteres som HTML/XML på `check`, og bygget feiler hvis terskelen ikke holdes.
+// Dekningen verifiseres på `check`, og bygget feiler hvis terskelen ikke holdes.
+// Rapporter genereres ved å kjøre koverHtmlReport eller koverXmlReport.
 kover {
     reports {
         total {
@@ -150,12 +151,6 @@ kover {
                         "no.nav.tiltakspenger.journalposthendelser.infra.db.FlywayMigrateKt",
                     )
                 }
-            }
-            html {
-                onCheck = true
-            }
-            xml {
-                onCheck = true
             }
             verify {
                 onCheck = true
