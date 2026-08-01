@@ -16,7 +16,7 @@ import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
-internal class SafJournalpostClientTest {
+class SafJournalpostClientTest {
     private val journalpostId = JournalpostId("4567")
 
     private fun klient(baseUrl: String, transport: HttpTransport? = null) = if (transport == null) {

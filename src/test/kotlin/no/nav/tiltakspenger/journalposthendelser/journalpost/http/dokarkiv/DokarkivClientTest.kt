@@ -17,7 +17,7 @@ import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import org.junit.jupiter.api.Test
 
-internal class DokarkivClientTest {
+class DokarkivClientTest {
     private val journalpostId = JournalpostId("4567")
     private val fnr = "12345678910"
     private val saksnummer = "202412345"

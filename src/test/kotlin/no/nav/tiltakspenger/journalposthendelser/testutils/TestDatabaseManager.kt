@@ -6,7 +6,7 @@ import no.nav.tiltakspenger.libs.persistering.test.common.TestDatabaseConfig
 import java.time.Clock
 import no.nav.tiltakspenger.libs.persistering.test.common.TestDatabaseManager as LibsTestDatabaseManager
 
-internal class TestDatabaseManager(
+class TestDatabaseManager(
     config: TestDatabaseConfig = TestDatabaseConfig(),
 ) {
     private val delegate = LibsTestDatabaseManager(

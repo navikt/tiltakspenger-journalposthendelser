@@ -15,7 +15,7 @@ import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import org.junit.jupiter.api.Test
 
-internal class PdlClientTest {
+class PdlClientTest {
     private val fnr = "12345678910"
 
     private fun klient(baseUrl: String, transport: HttpTransport? = null) = if (transport == null) {

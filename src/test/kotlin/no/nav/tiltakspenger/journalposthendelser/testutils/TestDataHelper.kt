@@ -8,7 +8,7 @@ import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
 import java.time.Clock
 import javax.sql.DataSource
 
-internal class TestDataHelper(
+class TestDataHelper(
     dataSource: DataSource,
     val clock: Clock,
 ) {
@@ -24,7 +24,7 @@ private val dbManager = TestDatabaseManager()
  * @param runIsolated Tømmer databasen før denne testen for kjøre i isolasjon.
  * Brukes når man gjør operasjoner på tvers av saker.
  */
-internal fun withMigratedDb(
+fun withMigratedDb(
     runIsolated: Boolean = true,
     clock: Clock = TikkendeKlokke(),
     test: (TestDataHelper) -> Unit,

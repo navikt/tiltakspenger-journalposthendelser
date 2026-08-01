@@ -18,7 +18,7 @@ import no.nav.tiltakspenger.libs.httpklient.infra.transport.FakeHttpTransport
 import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import org.junit.jupiter.api.Test
 
-internal class OppgaveClientTest {
+class OppgaveClientTest {
     private val journalpostId = JournalpostId("4567")
     private val correlationId = CorrelationId.generate()
 
