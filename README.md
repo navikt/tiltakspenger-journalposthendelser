@@ -84,7 +84,7 @@ Repoet har per-miljø nais-manifester ([`.nais/nais-dev.yml`](.nais/nais-dev.yml
 ## Java-versjon
 
 Vi ønsker å holde oss på en **LTS-versjon** av Java (f.eks. 21, 25, 29).
-Unngå å oppgradere til mellomliggende (non-LTS) versjoner.
+Unngå å oppgradere til ikke-LTS-versjoner.
 
 Når Java-versjonen skal endres må følgende steder oppdateres samtidig:
 
