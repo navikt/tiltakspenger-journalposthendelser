@@ -7,7 +7,7 @@ val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 val felleslibVersion = "0.0.20260805225536"
 val ktorVersion = "3.4.3"
 val confluentVersion = "8.1.1"
-val avroVersion = "1.12.1"
+val avroVersion = "1.12.2"
 val jackson2Version = "2.22.1"
 val lz4Version = "1.11.2"
 // Samme versjon som `kafka` i tiltakspenger-libs sin versjonskatalog; se constraint-blokka under for hvorfor den må være strict.
