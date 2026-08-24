@@ -46,8 +46,8 @@ buildscript {
             // Avro drar inn jackson-bom 2.20.0 her. Buildscript-classpathen er en egen konfigurasjon,
             // så `implementation(platform(...))`-pinningen i dependencies-blokka når den ikke.
             // Versjonen er skrevet ut fordi buildscript-blokka evalueres før script-valene finnes; hold den i sync med `jackson2Version`.
-            add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.1")
-            add("classpath", "com.fasterxml.jackson.core:jackson-databind:2.22.1")
+            add("classpath", "com.fasterxml.jackson.core:jackson-core:2.22.2")
+            add("classpath", "com.fasterxml.jackson.core:jackson-databind:2.22.2")
         }
     }
 }
