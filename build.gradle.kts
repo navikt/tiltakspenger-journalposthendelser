@@ -14,7 +14,7 @@ val lz4Version = "1.11.2"
 val kafkaVersion = "4.3.1"
 val caffeineVersion = "3.2.4"
 val mockkVersion = "1.14.11"
-val prometeusVersion = "1.17.0"
+val prometeusVersion = "1.17.1"
 val testContainersVersion = "2.0.5"
 val kotestVersion = "6.2.4"
 
