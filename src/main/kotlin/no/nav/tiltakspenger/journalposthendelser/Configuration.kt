@@ -12,6 +12,7 @@ const val KAFKA_CONSUMER_GROUP_ID = "$APPLICATION_NAME-consumer-v2"
 object Configuration {
     val applicationHttpPort = 8080
     val logbackConfigFile = "logback.xml"
+    val avroSerializablePackages = "no.nav.joarkjournalfoeringhendelser"
     val safUrl: String = getEnvVar("SAF_URL")
     val safScope: String = getEnvVar("SAF_SCOPE")
     val saksbehandlingApiUrl: String = getEnvVar("SAKSBEHANDLING_API_URL")

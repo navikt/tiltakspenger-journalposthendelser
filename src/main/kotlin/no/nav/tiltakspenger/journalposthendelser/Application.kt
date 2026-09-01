@@ -15,6 +15,7 @@ private const val CALL_ID_MDC_KEY = "call-id"
 
 fun main() {
     System.setProperty("logback.configurationFile", Configuration.logbackConfigFile)
+    System.setProperty("org.apache.avro.SERIALIZABLE_PACKAGES", Configuration.avroSerializablePackages)
 
     val log = KotlinLogging.logger {}
 
