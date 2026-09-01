@@ -75,7 +75,7 @@ Verifiser endringer med testene.
 
 ## Deploy
 
-Deployen bruker de delte workflowene i [metarepoet](https://github.com/navikt/tiltakspenger/blob/main/.github/workflows/README.md).
+Deployen bruker de delte workflowene i [tiltakspenger-workflows](https://github.com/navikt/tiltakspenger-workflows/blob/main/.github/workflows/README.md).
 Push til `main` bygger og deployer til dev og deretter prod ([`deploy-prod.yml`](.github/workflows/deploy-prod.yml)).
 `deploy-dev.yml` kan kjøres manuelt for å deploye en gren til dev.
 
