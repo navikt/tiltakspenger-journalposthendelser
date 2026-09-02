@@ -156,7 +156,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson3:${ktorVersion}")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:12.10.0")
+    implementation("org.flywaydb:flyway-database-postgresql:13.4.0")
     implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.postgresql:postgresql:42.7.13")
     implementation("com.github.seratch:kotliquery:1.9.1")
