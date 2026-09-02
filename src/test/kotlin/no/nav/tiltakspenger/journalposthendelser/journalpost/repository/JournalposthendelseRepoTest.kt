@@ -6,6 +6,7 @@ import kotliquery.queryOf
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
 import no.nav.tiltakspenger.journalposthendelser.testutils.TestDataHelper
+import no.nav.tiltakspenger.journalposthendelser.testutils.fnrGenerator
 import no.nav.tiltakspenger.journalposthendelser.testutils.shouldBeCloseTo
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.JournalpostId
@@ -23,7 +24,7 @@ class JournalposthendelseRepoTest {
             val repo = testDataHelper.journalposthendelseRepo
             val journalposthendelseDB = JournalposthendelseDB(
                 journalpostId = JournalpostId("1234567"),
-                fnr = "12345678910",
+                fnr = fnrGenerator.generer().verdi,
                 brevkode = Brevkode.SØKNAD.brevkode,
                 saksnummer = "202509151003",
                 journalpostOppdatertTidspunkt = nå(clock).minusMinutes(3),
@@ -61,7 +62,7 @@ class JournalposthendelseRepoTest {
             val repo = testDataHelper.journalposthendelseRepo
             val journalposthendelseDB = JournalposthendelseDB(
                 journalpostId = JournalpostId("1234567"),
-                fnr = "12345678910",
+                fnr = fnrGenerator.generer().verdi,
                 brevkode = Brevkode.SØKNAD.brevkode,
                 saksnummer = "202509151003",
                 journalpostOppdatertTidspunkt = nå(clock).minusMinutes(3),

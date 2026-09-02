@@ -16,6 +16,7 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.Oppgav
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveResponse
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
+import no.nav.tiltakspenger.journalposthendelser.testutils.fnrGenerator
 import no.nav.tiltakspenger.journalposthendelser.testutils.tomHttpKlientMetadata
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -32,7 +33,7 @@ import java.time.Clock
 class OppgaveServiceTest {
     private val oppgaveClient = mockk<OppgaveClient>()
     private val journalpostId = JournalpostId("4567")
-    private val fnr = "12345678910"
+    private val fnr = fnrGenerator.generer().verdi
     private val saksnummer = "34567"
     private val oppgaveId = 9876
     private val tittel = "Klage på tiltakspenger"

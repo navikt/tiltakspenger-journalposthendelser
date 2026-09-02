@@ -14,6 +14,7 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Journalposth
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.dokarkiv.DokarkivClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.saksbehandlingapi.SaksbehandlingApiClient
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseDB
+import no.nav.tiltakspenger.journalposthendelser.testutils.fnrGenerator
 import no.nav.tiltakspenger.journalposthendelser.testutils.tomHttpKlientMetadata
 import no.nav.tiltakspenger.journalposthendelser.testutils.withMigratedDb
 import no.nav.tiltakspenger.libs.common.CorrelationId
@@ -57,7 +58,7 @@ class JournalpostServiceTest {
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = JournalpostId("4567"),
-                    fnr = "12345678910",
+                    fnr = fnrGenerator.generer().verdi,
                     brevkode = Brevkode.SØKNAD.brevkode,
                     opprettet = nå(clock),
                     sistEndret = nå(clock),
@@ -112,7 +113,7 @@ class JournalpostServiceTest {
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = JournalpostId("4567"),
-                    fnr = "12345678910",
+                    fnr = fnrGenerator.generer().verdi,
                     brevkode = Brevkode.SØKNAD.brevkode,
                     saksnummer = saksnummer,
                     journalpostOppdatertTidspunkt = nå(clock),
@@ -157,7 +158,7 @@ class JournalpostServiceTest {
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = JournalpostId("4567"),
-                    fnr = "12345678910",
+                    fnr = fnrGenerator.generer().verdi,
                     brevkode = Brevkode.SØKNAD.brevkode,
                     saksnummer = saksnummer,
                     journalpostOppdatertTidspunkt = nå(clock),
@@ -203,7 +204,7 @@ class JournalpostServiceTest {
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = JournalpostId("4567"),
-                    fnr = "12345678910",
+                    fnr = fnrGenerator.generer().verdi,
                     brevkode = Brevkode.KLAGE.brevkode,
                     opprettet = nå(clock),
                     sistEndret = nå(clock),
@@ -259,7 +260,7 @@ class JournalpostServiceTest {
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = JournalpostId("4567"),
-                    fnr = "12345678910",
+                    fnr = fnrGenerator.generer().verdi,
                     brevkode = Brevkode.SØKNAD.brevkode,
                     opprettet = nå(clock),
                     sistEndret = nå(clock),
@@ -286,7 +287,7 @@ class JournalpostServiceTest {
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = JournalpostId("4567"),
-                    fnr = "12345678910",
+                    fnr = fnrGenerator.generer().verdi,
                     brevkode = Brevkode.SØKNAD.brevkode,
                     opprettet = nå(clock),
                     sistEndret = nå(clock),
@@ -313,7 +314,7 @@ class JournalpostServiceTest {
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = JournalpostId("4567"),
-                    fnr = "12345678910",
+                    fnr = fnrGenerator.generer().verdi,
                     brevkode = Brevkode.SØKNAD.brevkode,
                     saksnummer = saksnummer,
                     journalpostOppdatertTidspunkt = nå(clock),
@@ -339,7 +340,7 @@ class JournalpostServiceTest {
                     JournalpostService(saksbehandlingApiClient, dokarkivClient, journalposthendelseRepo, clock)
                 val journalposthendelseDB = JournalposthendelseDB(
                     journalpostId = JournalpostId("4567"),
-                    fnr = "12345678910",
+                    fnr = fnrGenerator.generer().verdi,
                     brevkode = Brevkode.KLAGE.brevkode,
                     saksnummer = saksnummer,
                     journalpostOppdatertTidspunkt = nå(clock),

@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.journalposthendelser.testutils.fnrGenerator
 import no.nav.tiltakspenger.journalposthendelser.testutils.testTokenProvider
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.JournalpostId
@@ -29,7 +30,7 @@ class OppgaveClientTest {
     }
 
     private val request = OpprettOppgaveRequest.opprettOppgaveRequestForPapirsoknad(
-        fnr = "12345678910",
+        fnr = fnrGenerator.generer().verdi,
         journalpostId = journalpostId,
         clock = fixedClock,
     )

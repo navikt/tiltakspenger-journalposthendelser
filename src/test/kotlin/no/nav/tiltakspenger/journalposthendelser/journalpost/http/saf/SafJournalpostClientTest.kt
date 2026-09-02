@@ -30,8 +30,8 @@ class SafJournalpostClientTest {
         {
           "data": {
             "journalpost": {
-              "avsenderMottaker": { "id": "12345678910", "navn": "Test Testesen" },
-              "bruker": { "id": "12345678910", "type": "FNR" },
+              "avsenderMottaker": { "id": "12845678910", "navn": "Test Testesen" },
+              "bruker": { "id": "12845678910", "type": "FNR" },
               "datoOpprettet": "2024-01-02T03:04:05",
               "dokumenter": [
                 {
@@ -72,7 +72,7 @@ class SafJournalpostClientTest {
                 val metadata = klient(wiremock.baseUrl()).getJournalpostMetadata(journalpostId).getOrFail()
 
                 metadata.journalpostId shouldBe journalpostId
-                metadata.bruker shouldBe Bruker("12345678910", BrukerIdType.FNR)
+                metadata.bruker shouldBe Bruker("12845678910", BrukerIdType.FNR)
                 metadata.erJournalfort shouldBe false
                 metadata.datoOpprettet shouldBe LocalDateTime.parse("2024-01-02T03:04:05")
                 metadata.brevkode shouldBe "NAV 76-13.45"

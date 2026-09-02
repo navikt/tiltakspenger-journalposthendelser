@@ -3,6 +3,7 @@ package no.nav.tiltakspenger.journalposthendelser.journalpost.repository
 import io.kotest.matchers.shouldBe
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.Brevkode
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
+import no.nav.tiltakspenger.journalposthendelser.testutils.fnrGenerator
 import no.nav.tiltakspenger.libs.common.JournalpostId
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -11,7 +12,7 @@ class JournalposthendelseDBTest {
     private val tidspunkt = LocalDateTime.of(2026, 7, 23, 12, 0)
 
     private fun journalposthendelseDB(
-        fnr: String? = "12345678910",
+        fnr: String? = fnrGenerator.generer().verdi,
         brevkode: String? = Brevkode.KLAGE.brevkode,
         saksnummer: String? = "34567",
         journalpostOppdatertTidspunkt: LocalDateTime? = tidspunkt,

@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
+import no.nav.tiltakspenger.journalposthendelser.testutils.fnrGenerator
 import no.nav.tiltakspenger.journalposthendelser.testutils.testTokenProvider
 import no.nav.tiltakspenger.libs.common.CorrelationId
 import no.nav.tiltakspenger.libs.common.fixedClock
@@ -18,7 +19,7 @@ import no.nav.tiltakspenger.libs.httpklient.infra.transport.HttpTransport
 import org.junit.jupiter.api.Test
 
 class SaksbehandlingApiClientTest {
-    private val fnr = "12345678910"
+    private val fnr = fnrGenerator.generer().verdi
     private val correlationId = CorrelationId.generate()
 
     private fun klient(baseUrl: String, transport: HttpTransport? = null) = if (transport == null) {
