@@ -4,9 +4,9 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
-val felleslibVersion = "0.0.20260902171610"
+val felleslibVersion = "0.0.20260907134256"
 val ktorVersion = "3.4.3"
-val confluentVersion = "8.1.1"
+val confluentVersion = "8.3.1"
 val avroVersion = "1.12.2"
 val jackson2Version = "2.22.2"
 val lz4Version = "1.11.2"
@@ -42,7 +42,7 @@ buildscript {
             // Kodeinjeksjon i Avros Java-SDK (GHSA-rp46-r563-jrc7); samme versjon som `avroVersion`.
             add("classpath", "org.apache.avro:avro-compiler:1.12.2")
             // Ukontrollert rekursjon på lange inndata (GHSA-j288-q9x7-2f5v).
-            add("classpath", "org.apache.commons:commons-lang3:3.18.0")
+            add("classpath", "org.apache.commons:commons-lang3:3.20.0")
             // Avro drar inn jackson-bom 2.20.0 her. Buildscript-classpathen er en egen konfigurasjon,
             // så `implementation(platform(...))`-pinningen i dependencies-blokka når den ikke.
             // Versjonen er skrevet ut fordi buildscript-blokka evalueres før script-valene finnes; hold den i sync med `jackson2Version`.
@@ -56,8 +56,8 @@ plugins {
     application
     kotlin("jvm") version "2.4.10"
     kotlin("plugin.serialization") version "2.4.10"
-    id("com.diffplug.spotless") version "8.8.0"
-    id("com.github.ben-manes.versions") version "0.54.0"
+    id("com.diffplug.spotless") version "8.10.1"
+    id("com.github.ben-manes.versions") version "0.61.0"
     // https://github.com/androa/gradle-plugin-avro
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
     id("org.jetbrains.kotlinx.kover") version "0.9.9"
@@ -120,22 +120,35 @@ dependencies {
     implementation(platform("com.fasterxml.jackson:jackson-bom:$jackson2Version"))
 
     constraints {
-        // Confluent publiserer sin egen fork av kafka-clients som `8.1.1-ccs`. Den taper ikke
-        // konfliktoppløsningen mot Apache 4.3.1 fra libs:kafka - Gradle leser "8.1.1-ccs" som
-        // høyere enn "4.3.1" - så uten `strictly` er det Confluent-forken som havner i imaget.
-        // Den er bygd på Kafka 4.1 og drar inn den avviklede `org.lz4:lz4-java` 1.8.0, som har
-        // både out-of-bounds-lesing (GHSA-vqf4-7m7x-wgfc) og en informasjonslekkasje i den trygge
-        // dekomprimereren (GHSA-cmp6-m4wj-q63q) - sistnevnte uten fiks på de koordinatene.
-        // Med Apache-versjonen kommer i stedet `at.yawk.lz4:lz4-java`, som vedlikeholdes.
+        // Confluent publiserer sin egen fork av kafka-clients som `8.3.1-ccs`. Den taper ikke
+        // konfliktoppløsningen mot Apache 4.3.1 fra libs:kafka - Gradle leser "8.3.1-ccs" som
+        // høyere enn "4.3.1" - så uten `strictly` er det Confluent-forken som havner i imaget,
+        // og ikke Apache-utgivelsen vi bygger og tester mot.
+        // Pinnet kom av at forken på 8.1-linja var bygd på Kafka 4.1 og dro inn den avviklede
+        // `org.lz4:lz4-java` 1.8.0, med både out-of-bounds-lesing (GHSA-vqf4-7m7x-wgfc) og en
+        // informasjonslekkasje i den trygge dekomprimereren (GHSA-cmp6-m4wj-q63q) - sistnevnte
+        // uten fiks på de koordinatene. Forken på 8.3.1 er bygd på Kafka 4.3.0 og bruker
+        // `at.yawk.lz4:lz4-java` 1.10.2 som Apache, så lz4-hullet er borte; `strictly` blir
+        // stående fordi versjonsvalget ellers faller tilbake på forken uten at noen har bestemt det.
         implementation("org.apache.kafka:kafka-clients") {
             version { strictly(kafkaVersion) }
         }
         // Apache kafka-clients drar inn lz4-java 1.10.2, der de native XXHash-implementasjonene
         // kan krasje JVM-en på ugyldige byte-intervaller (GHSA-xx22-p4ch-683r).
         implementation("at.yawk.lz4:lz4-java:$lz4Version")
+        // `kafka-schema-registry-client`, som `kafka-avro-serializer` drar inn, pinner httpclient5 5.5
+        // og får med httpcore5 5.3.4. httpcore5 5.3.4 lar HTTP/1-headere spise minne til tjenesten
+        // går ned (CVE-2026-54399), og httpcore5-h2 5.3.4 tar imot ubegrenset HPACK-headerliste før
+        // SETTINGS-ACK (CVE-2026-54428); begge er fikset i 5.4.3. httpclient5 5.5 lekker forbindelser
+        // når dekoding av Content-Encoding feiler, til poolen er tom (CVE-2026-64607); fikset i 5.6.3.
+        // Vi tar 5.6.4, som er nyeste og bygger på httpcore5 5.4.3 - samme versjoner som
+        // plattform-BOM-en i tiltakspenger-libs styrer for flåten.
+        implementation("org.apache.httpcomponents.client5:httpclient5:5.6.4") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kun constraint
+        implementation("org.apache.httpcomponents.core5:httpcore5:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kun constraint
+        implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kun constraint
     }
 
-    implementation("ch.qos.logback:logback-classic:1.5.38")
+    implementation("ch.qos.logback:logback-classic:1.6.3")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("org.jetbrains:annotations:26.1.0")
     implementation("com.natpryce:konfig:1.6.10.0")
@@ -156,7 +169,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson3:${ktorVersion}")
 
     // DB
-    implementation("org.flywaydb:flyway-database-postgresql:12.10.0")
+    implementation("org.flywaydb:flyway-database-postgresql:13.4.0")
     implementation("com.zaxxer:HikariCP:7.1.0")
     implementation("org.postgresql:postgresql:42.7.13")
     implementation("com.github.seratch:kotliquery:1.9.1")
