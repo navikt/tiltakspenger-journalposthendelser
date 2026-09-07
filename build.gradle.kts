@@ -143,9 +143,9 @@ dependencies {
         // når dekoding av Content-Encoding feiler, til poolen er tom (CVE-2026-64607); fikset i 5.6.3.
         // Vi tar 5.6.4, som er nyeste og bygger på httpcore5 5.4.3 - samme versjoner som
         // plattform-BOM-en i tiltakspenger-libs styrer for flåten.
-        implementation("org.apache.httpcomponents.client5:httpclient5:5.6.4") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kun constraint
-        implementation("org.apache.httpcomponents.core5:httpcore5:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kun constraint
-        implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kun constraint
+        implementation("org.apache.httpcomponents.client5:httpclient5:5.6.4") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kommer transitivt fra kafka-schema-registry-client
+        implementation("org.apache.httpcomponents.core5:httpcore5:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kommer transitivt fra kafka-schema-registry-client
+        implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.3") // httpklient-unntak: pinner CVE-fiks (CVE-2026-54399/-54428/-64607), kommer transitivt fra kafka-schema-registry-client
     }
 
     implementation("ch.qos.logback:logback-classic:1.6.3")
