@@ -10,9 +10,6 @@ import no.nav.tiltakspenger.libs.ktor.common.oppstart.startApp
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import java.time.Clock
 
-// Påkrevd av Bakgrunnsprosessoppsett, men ubrukt her siden appen ikke har skedulerte jobber (kun Kafka-consumer).
-private const val CALL_ID_MDC_KEY = "call-id"
-
 fun main() {
     System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile)
     System.setProperty("org.apache.avro.SERIALIZABLE_PACKAGES", Configuration.avroSerializablePackages)
@@ -41,9 +38,6 @@ fun start(
         host = host,
         isNais = isNais,
         oppsett = Bakgrunnsprosessoppsett(
-            mdcCallIdKey = CALL_ID_MDC_KEY,
-            // TODO: fjern denne når libs er oppdatert til ikke å kreve electorPath
-            electorPath = { "" },
             kafkaConsumers = if (isNais) {
                 listOf(
                     KafkaConsumerOppsett(
@@ -55,7 +49,6 @@ fun start(
             } else {
                 emptyList()
             },
-            clock = clock,
         ),
     ) { readiness ->
         setupRoutes(readiness = readiness)
