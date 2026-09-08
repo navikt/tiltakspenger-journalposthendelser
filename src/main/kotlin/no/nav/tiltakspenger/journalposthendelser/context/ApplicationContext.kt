@@ -27,7 +27,7 @@ open class ApplicationContext(
     clock: Clock,
 ) {
     private val log: KLogger = KotlinLogging.logger { }
-    val dataSource = DataSourceSetup.createDatasource(Configuration.jdbcUrl)
+    val dataSource = DataSourceSetup.createDatasource(Configuration.dbJdbcUrl)
     val sessionCounter = SessionCounter(log)
     val sessionFactory = PostgresSessionFactory(dataSource, sessionCounter)
 
@@ -39,8 +39,8 @@ open class ApplicationContext(
     )
 
     val texasClient: TexasClient = TexasHttpClient(
-        introspectionUrl = Configuration.naisTokenIntrospectionEndpoint,
-        tokenUrl = Configuration.naisTokenEndpoint,
+        introspectionUrl = Configuration.tokenIntrospectionEndpoint,
+        tokenUrl = Configuration.tokenEndpoint,
         tokenExchangeUrl = Configuration.tokenExchangeEndpoint,
         clock = clock,
     )

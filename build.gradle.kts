@@ -151,7 +151,6 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.6.3")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("org.jetbrains:annotations:26.1.0")
-    implementation("com.natpryce:konfig:1.6.10.0")
     implementation("io.github.oshai:kotlin-logging-jvm:8.0.4")
 
     // Http
@@ -216,6 +215,10 @@ kover {
                         "no.nav.tiltakspenger.journalposthendelser.context.ApplicationContext",
                         // TODO jah: Profil/miljøvariabler leses fra global system-env (System.getenv/getProperty); PROD/DEV-grenene kan ikke dekkes uten å mutere JVM-global tilstand delt mellom tester. Gjør profil/cluster-navn injiserbart.
                         "no.nav.tiltakspenger.journalposthendelser.Configuration*",
+                        "no.nav.tiltakspenger.journalposthendelser.EnvironmentConfig*",
+                        "no.nav.tiltakspenger.journalposthendelser.LocalConfig*",
+                        "no.nav.tiltakspenger.journalposthendelser.DevConfig*",
+                        "no.nav.tiltakspenger.journalposthendelser.ProdConfig*",
                         // TODO jah: gcp/lokal-Flyway-grenen velges av global Configuration.isNais(); testes ikke uten å mutere system-env. Gjør profilvalget injiserbart.
                         "no.nav.tiltakspenger.journalposthendelser.infra.db.FlywayMigrateKt",
                     )

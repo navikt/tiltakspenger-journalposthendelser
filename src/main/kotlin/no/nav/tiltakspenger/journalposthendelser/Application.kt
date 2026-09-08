@@ -14,7 +14,7 @@ import java.time.Clock
 private const val CALL_ID_MDC_KEY = "call-id"
 
 fun main() {
-    System.setProperty("logback.configurationFile", Configuration.logbackConfigFile)
+    System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile)
     System.setProperty("org.apache.avro.SERIALIZABLE_PACKAGES", Configuration.avroSerializablePackages)
 
     val log = KotlinLogging.logger {}
@@ -25,7 +25,7 @@ fun main() {
 fun start(
     log: KLogger,
     clock: Clock,
-    port: Int = Configuration.applicationHttpPort,
+    port: Int = Configuration.httpPort,
     host: String = "0.0.0.0",
     isNais: Boolean = Configuration.isNais(),
     applicationContext: ApplicationContext = ApplicationContext(clock),
