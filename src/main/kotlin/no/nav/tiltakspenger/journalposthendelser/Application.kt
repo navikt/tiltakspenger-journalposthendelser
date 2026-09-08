@@ -42,7 +42,8 @@ fun start(
         isNais = isNais,
         oppsett = Bakgrunnsprosessoppsett(
             mdcCallIdKey = CALL_ID_MDC_KEY,
-            electorPath = Configuration::electorPath,
+            // TODO: fjern denne når libs er oppdatert til ikke å kreve electorPath
+            electorPath = { "" },
             kafkaConsumers = if (isNais) {
                 listOf(
                     KafkaConsumerOppsett(

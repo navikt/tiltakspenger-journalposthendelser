@@ -11,7 +11,6 @@ sealed interface EnvironmentConfig {
     val httpPort: Int
     val logbackConfigurationFile: String
 
-    val electorPath: String
     val dbJdbcUrl: String
 
     /** Til sikkerlogg-henvisningen; satt av nais i podene, null lokalt (da blir henvisningen ren tekst uten lenke). */
@@ -44,7 +43,6 @@ data object LocalConfig : EnvironmentConfig {
     override val logbackConfigurationFile = "logback.local.xml"
 
     // Appen har ingen lokal kjørehistorikk mot eksterne tjenester; url'er og scopes er tomme lokalt.
-    override val electorPath = ""
     override val dbJdbcUrl = ""
 
     override val naisAppName: String? = null
@@ -75,7 +73,6 @@ data object DevConfig : EnvironmentConfig {
     override val httpPort = 8080
     override val logbackConfigurationFile = "logback.xml"
 
-    override val electorPath: String = System.getenv("ELECTOR_PATH")
     override val dbJdbcUrl: String = System.getenv("DB_JDBC_URL")
 
     override val naisAppName: String? = System.getenv("NAIS_APP_NAME")
@@ -106,7 +103,6 @@ data object ProdConfig : EnvironmentConfig {
     override val httpPort = 8080
     override val logbackConfigurationFile = "logback.xml"
 
-    override val electorPath: String = System.getenv("ELECTOR_PATH")
     override val dbJdbcUrl: String = System.getenv("DB_JDBC_URL")
 
     override val naisAppName: String? = System.getenv("NAIS_APP_NAME")
