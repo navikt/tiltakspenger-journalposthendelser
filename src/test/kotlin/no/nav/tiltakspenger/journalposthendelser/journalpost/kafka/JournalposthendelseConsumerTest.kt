@@ -5,6 +5,7 @@ import arrow.core.right
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -14,8 +15,8 @@ import kotlinx.coroutines.test.runTest
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalposthendelseService
 import no.nav.tiltakspenger.journalposthendelser.journalpost.domene.JournalposthendelseIkkeBehandlet
-import no.nav.tiltakspenger.libs.kafka.avro.infra.AvroKafkaConfig
-import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
+import no.nav.tiltakspenger.journalposthendelser.testutils.lokalAvroKafkaConfig
+import no.nav.tiltakspenger.libs.common.fixedClock
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -23,14 +24,12 @@ import org.junit.jupiter.params.provider.ValueSource
 
 class JournalposthendelseConsumerTest {
     private val journalposthendelseService = mockk<JournalposthendelseService>()
-    private val lokalAvroKafkaConfig = AvroKafkaConfig(
-        kafkaConfig = KafkaConfig(kafkaBrokers = "localhost:9092"),
-        schemaRegistryUrl = "mock://test",
-    )
     private val consumer = JournalposthendelseConsumer(
         topic = "test-topic",
         avroKafkaConfig = lokalAvroKafkaConfig,
         journalposthendelseService = journalposthendelseService,
+        clock = fixedClock,
+        meterRegistry = SimpleMeterRegistry(),
     )
 
     fun journalføringshendelseFraKafka(
@@ -101,6 +100,8 @@ class JournalposthendelseConsumerTest {
             topic = "test-topic-run-stop",
             avroKafkaConfig = lokalAvroKafkaConfig,
             journalposthendelseService = journalposthendelseService,
+            clock = fixedClock,
+            meterRegistry = SimpleMeterRegistry(),
         )
 
         val job = consumerUtenBroker.run()
@@ -116,6 +117,8 @@ class JournalposthendelseConsumerTest {
             JournalposthendelseConsumer(
                 topic = "test-topic-default-config",
                 journalposthendelseService = journalposthendelseService,
+                clock = fixedClock,
+                meterRegistry = SimpleMeterRegistry(),
             )
         }
     }

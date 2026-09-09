@@ -1,36 +1,36 @@
 package no.nav.tiltakspenger.journalposthendelser.routes
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.metrics.micrometer.MicrometerMetrics
-import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import io.micrometer.core.instrument.Clock
-import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.Readiness
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.healthRoutes
 
-fun Application.setupRoutes(readiness: Readiness) {
+fun Application.setupRoutes(readiness: Readiness, meterRegistry: PrometheusMeterRegistry) {
     routing { healthRoutes(erKlar = readiness::erKlar) }
-    metrics()
+    metrics(meterRegistry)
 }
 
-fun Application.metrics() {
-    val appMicrometerRegistry = PrometheusMeterRegistry(
-        PrometheusConfig.DEFAULT,
-        PrometheusRegistry.defaultRegistry,
-        Clock.SYSTEM,
-    )
-
+/**
+ * Kobler Ktor-metrikkene og `/metrics` til registeret appen allerede eier.
+ * Registeret kommer inn som parameter i stedet for å konstrueres her, slik at Kafka-consumeren fører målingene sine i nøyaktig det registeret som skrapes.
+ * Konstruksjonen hører hjemme i komposisjonsroten, se `prometheusMeterRegistry()` i `Application.kt`.
+ */
+fun Application.metrics(meterRegistry: PrometheusMeterRegistry) {
     install(MicrometerMetrics) {
-        registry = appMicrometerRegistry
+        registry = meterRegistry
     }
     routing {
         get("/metrics") {
-            call.respond(appMicrometerRegistry.scrape())
+            call.respondText(
+                text = meterRegistry.scrape(),
+                status = HttpStatusCode.OK,
+            )
         }
     }
 }

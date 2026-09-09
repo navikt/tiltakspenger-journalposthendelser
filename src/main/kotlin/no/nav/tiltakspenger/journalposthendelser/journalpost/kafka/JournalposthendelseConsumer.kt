@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.journalposthendelser.journalpost.kafka
 
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micrometer.core.instrument.MeterRegistry
 import no.nav.joarkjournalfoeringhendelser.JournalfoeringHendelseRecord
 import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.KAFKA_CONSUMER_GROUP_ID
@@ -11,6 +12,7 @@ import no.nav.tiltakspenger.libs.kafka.infra.Consumer
 import no.nav.tiltakspenger.libs.kafka.infra.KafkaConfig
 import no.nav.tiltakspenger.libs.kafka.infra.ManagedKafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
+import java.time.Clock
 
 /**
  * Dokumentasjon for Joarkhendelser https://confluence.adeo.no/x/Ix-DGQ
@@ -20,6 +22,8 @@ class JournalposthendelseConsumer(
     groupId: String = KAFKA_CONSUMER_GROUP_ID,
     avroKafkaConfig: AvroKafkaConfig = if (Configuration.isNais()) AvroKafkaConfig.fraNaisEnv(autoOffsetReset = "earliest") else AvroKafkaConfig(kafkaConfig = KafkaConfig(kafkaBrokers = "localhost:9092"), schemaRegistryUrl = "mock://test"),
     private val journalposthendelseService: JournalposthendelseService,
+    clock: Clock,
+    meterRegistry: MeterRegistry,
 ) : Consumer<String, JournalfoeringHendelseRecord> {
     private val log = KotlinLogging.logger { }
 
@@ -31,6 +35,8 @@ class JournalposthendelseConsumer(
             groupId = groupId,
         ),
         consume = ::consume,
+        clock = clock,
+        meterRegistry = meterRegistry,
     )
 
     override suspend fun consume(key: String, value: JournalfoeringHendelseRecord) {

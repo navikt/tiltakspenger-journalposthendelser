@@ -2,6 +2,7 @@ package no.nav.tiltakspenger.journalposthendelser.context
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.tiltakspenger.journalposthendelser.Configuration
 import no.nav.tiltakspenger.journalposthendelser.infra.db.DataSourceSetup
 import no.nav.tiltakspenger.journalposthendelser.journalpost.JournalpostService
@@ -25,6 +26,12 @@ import java.time.Clock
 
 open class ApplicationContext(
     clock: Clock,
+    /**
+     * Registeret Kafka-consumeren og Ktor fører målingene sine i, og som `/metrics` skraper.
+     * Injiseres fra komposisjonsroten slik at appen har nøyaktig ett register, og slik at målingene havner i det samme registeret som blir skrapet.
+     * Testene sender inn sitt eget register, siden et prosessnavn bare kan registreres én gang per register.
+     */
+    val meterRegistry: PrometheusMeterRegistry,
 ) {
     private val log: KLogger = KotlinLogging.logger { }
     val dataSource = DataSourceSetup.createDatasource(Configuration.dbJdbcUrl)
@@ -103,5 +110,7 @@ open class ApplicationContext(
     val journalposthendelseConsumer = JournalposthendelseConsumer(
         topic = Configuration.topic,
         journalposthendelseService = journalposthendelseService,
+        clock = clock,
+        meterRegistry = meterRegistry,
     )
 }
