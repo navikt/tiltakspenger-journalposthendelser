@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
-val felleslibVersion = "0.0.20260908114306"
+val felleslibVersion = "0.0.20260909152750"
 val ktorVersion = "3.4.3"
 val confluentVersion = "8.3.1"
 val avroVersion = "1.12.2"

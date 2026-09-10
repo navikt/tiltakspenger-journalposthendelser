@@ -2,17 +2,14 @@ package no.nav.tiltakspenger.journalposthendelser
 
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.micrometer.prometheusmetrics.PrometheusConfig
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.nav.tiltakspenger.journalposthendelser.context.ApplicationContext
 import no.nav.tiltakspenger.journalposthendelser.routes.setupRoutes
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.Bakgrunnsprosessoppsett
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.KafkaConsumerOppsett
+import no.nav.tiltakspenger.libs.ktor.common.oppstart.prometheusMeterRegistry
 import no.nav.tiltakspenger.libs.ktor.common.oppstart.startApp
 import no.nav.tiltakspenger.libs.tid.zoneIdOslo
 import java.time.Clock
-import io.micrometer.core.instrument.Clock as MicrometerClock
 
 fun main() {
     System.setProperty("logback.configurationFile", Configuration.logbackConfigurationFile)
@@ -22,21 +19,6 @@ fun main() {
 
     start(log = log, clock = Clock.system(zoneIdOslo))
 }
-
-/**
- * Registeret appen eksponerer på `/metrics`, og som Kafka-consumeren fører målingene sine i.
- * Det er bevisst bundet til Prometheus sitt globale register: [no.nav.tiltakspenger.journalposthendelser.infra.MetricRegister] registrerer tellerne sine rett på [PrometheusRegistry.defaultRegistry], og de skal fortsatt bli med i skrapingen.
- * [MicrometerClock] er Micrometers egen klokke og har ingenting med appens [Clock] å gjøre; den brukes kun til å konstruere registeret.
- *
- * Tester skal aldri bruke denne.
- * Et globalt register er prosessglobal tilstand som ikke kan varieres per test, og et prosessnavn kan bare registreres én gang per register.
- * Testene lager i stedet sitt eget `PrometheusMeterRegistry(PrometheusConfig.DEFAULT)`.
- */
-fun prometheusMeterRegistry(): PrometheusMeterRegistry = PrometheusMeterRegistry(
-    PrometheusConfig.DEFAULT,
-    PrometheusRegistry.defaultRegistry,
-    MicrometerClock.SYSTEM,
-)
 
 fun start(
     log: KLogger,
