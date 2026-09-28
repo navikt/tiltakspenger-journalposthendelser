@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 val mainClassFile = "no.nav.tiltakspenger.journalposthendelser.ApplicationKt"
 
-val felleslibVersion = "0.0.20260910084632"
+val felleslibVersion = "0.0.20260925103121"
 val ktorVersion = "3.5.2"
 val confluentVersion = "8.3.1"
 val avroVersion = "1.12.2"
@@ -83,20 +83,20 @@ configurations.all {
 
 dependencies {
     //libs
-    implementation("com.github.navikt.tiltakspenger-libs:common:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:periodisering:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:json:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:kafka:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:kafka-avro:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:ktor-common:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:logging:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:persistering-domene:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:persistering-infrastruktur:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:texas:$felleslibVersion")
-    implementation("com.github.navikt.tiltakspenger-libs:httpklient-infrastruktur:$felleslibVersion")
-    testImplementation("com.github.navikt.tiltakspenger-libs:persistering-test-common:$felleslibVersion")
-    testImplementation("com.github.navikt.tiltakspenger-libs:test-common:$felleslibVersion")
-    testImplementation(testFixtures("com.github.navikt.tiltakspenger-libs:httpklient-infrastruktur:$felleslibVersion"))
+    implementation("no.nav.tiltakspenger.libs:common:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:periodisering:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:json:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:kafka:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:kafka-avro:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:ktor-common:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:logging:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:persistering-domene:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:persistering-infrastruktur:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:texas:$felleslibVersion")
+    implementation("no.nav.tiltakspenger.libs:httpklient-infrastruktur:$felleslibVersion")
+    testImplementation("no.nav.tiltakspenger.libs:persistering-test-common:$felleslibVersion")
+    testImplementation("no.nav.tiltakspenger.libs:test-common:$felleslibVersion")
+    testImplementation(testFixtures("no.nav.tiltakspenger.libs:httpklient-infrastruktur:$felleslibVersion"))
 
     // Brukes direkte i klient- og service-koden (Either); gjøres eksplisitt i stedet for å arves transitivt fra libs.
     implementation("io.arrow-kt:arrow-core:2.2.3")
@@ -187,7 +187,7 @@ dependencies {
     // Test
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     // Delte arkitekturregler; drar inn konsist transitivt (api-avhengighet). Egen versjon inntil felleslibVersion bumpes.
-    testImplementation("com.github.navikt.tiltakspenger-libs:konsist-regler:$felleslibVersion")
+    testImplementation("no.nav.tiltakspenger.libs:konsist-regler:$felleslibVersion")
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("io.mockk:mockk:${mockkVersion}")
