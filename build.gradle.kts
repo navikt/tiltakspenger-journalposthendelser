@@ -12,7 +12,7 @@ val jackson2Version = "2.22.2"
 val lz4Version = "1.11.2"
 // Samme versjon som `kafka` i tiltakspenger-libs sin versjonskatalog; se constraint-blokka under for hvorfor den må være strict.
 val kafkaVersion = "4.3.1"
-val caffeineVersion = "3.2.4"
+val caffeineVersion = "3.3.0"
 val mockkVersion = "1.14.11"
 val prometeusVersion = "1.17.1"
 val testContainersVersion = "2.0.5"
