@@ -4,7 +4,7 @@ import kotliquery.Row
 import kotliquery.queryOf
 import no.nav.tiltakspenger.journalposthendelser.journalpost.http.oppgave.OppgaveType
 import no.nav.tiltakspenger.libs.common.JournalpostId
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
 
 class JournalposthendelseRepo(
     private val sessionFactory: PostgresSessionFactory,

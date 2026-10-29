@@ -3,8 +3,8 @@ package no.nav.tiltakspenger.journalposthendelser.testutils
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.libs.common.TikkendeKlokke
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
+import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infra.SessionCounter
 import java.time.Clock
 import javax.sql.DataSource
 

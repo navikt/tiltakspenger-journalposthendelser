@@ -17,8 +17,8 @@ import no.nav.tiltakspenger.journalposthendelser.journalpost.kafka.Journalposthe
 import no.nav.tiltakspenger.journalposthendelser.journalpost.repository.JournalposthendelseRepo
 import no.nav.tiltakspenger.libs.logging.Sikkerlogg
 import no.nav.tiltakspenger.libs.logging.infra.KotlinLoggingSikkerlogg
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.PostgresSessionFactory
-import no.nav.tiltakspenger.libs.persistering.infrastruktur.SessionCounter
+import no.nav.tiltakspenger.libs.persistering.infra.PostgresSessionFactory
+import no.nav.tiltakspenger.libs.persistering.infra.SessionCounter
 import no.nav.tiltakspenger.libs.texas.client.TexasClient
 import no.nav.tiltakspenger.libs.texas.client.TexasHttpClient
 import no.nav.tiltakspenger.libs.texas.client.TexasSystemTokenProvider
