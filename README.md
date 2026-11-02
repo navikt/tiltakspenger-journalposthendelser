@@ -89,8 +89,8 @@ Unngå å oppgradere til ikke-LTS-versjoner.
 Når Java-versjonen skal endres må følgende steder oppdateres samtidig:
 
 - `build.gradle.kts` – `jvmToolchain(XX)`, som styrer hvilken JDK Kotlin kompilerer med.
-- `Dockerfile` – `FROM gcr.io/distroless/javaXX-debianYY` (runtime-image).
-  Sjekk at en tilsvarende tag finnes på [distroless](https://github.com/GoogleContainerTools/distroless).
+- `Dockerfile` – `FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-XX` (runtime-image).
+  Sjekk at en tilsvarende tag finnes i [Chainguards katalog](https://images.chainguard.dev/directory/image/jre/versions).
 
 Java-versjonen i CI kommer fra `java-version`-defaulten i de delte workflowene i metarepoet, og settes ikke i dette repoet.
 Skal appen ligge på en annen versjon enn resten av flåten, må callerne i `.github/workflows` sende inputen eksplisitt.
