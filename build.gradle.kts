@@ -61,7 +61,7 @@ plugins {
     id("io.github.ben-manes.versions") version "0.61.0"
     // https://github.com/androa/gradle-plugin-avro
     id("io.github.androa.gradle.plugin.avro") version "0.0.12"
-    id("org.jetbrains.kotlinx.kover") version "0.9.9"
+    id("org.jetbrains.kotlinx.kover") version "0.9.11"
 }
 
 repositories {
